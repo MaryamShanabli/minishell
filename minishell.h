@@ -24,5 +24,3 @@ char	*get_path(char *cmd);
 void	execute(char *cmd, char **envp);
 
 #endif
-
-
