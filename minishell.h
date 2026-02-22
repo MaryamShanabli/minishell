@@ -20,3 +20,13 @@ char	*get_path(char *cmd);
 void	execute(char *cmd, char **envp);
 
 #endif
+# define MINISHELL_H
+
+# include <stdio.h>
+# include <stdlib.h>
+# include <readline/readline.h>
+# include <readline/history.h>
+
+extern int g_signal;
+
+#endif
