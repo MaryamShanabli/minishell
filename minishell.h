@@ -7,8 +7,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+
+extern int g_signal;
 
 char	**ft_split(char const *s, char c);
 char	*ft_strdup(const char *s);
@@ -20,13 +24,5 @@ char	*get_path(char *cmd);
 void	execute(char *cmd, char **envp);
 
 #endif
-# define MINISHELL_H
 
-# include <stdio.h>
-# include <stdlib.h>
-# include <readline/readline.h>
-# include <readline/history.h>
 
-extern int g_signal;
-
-#endif
