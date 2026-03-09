@@ -56,7 +56,7 @@ typedef struct s_cmd
 {
     char			**argv;        // NULL-terminated args array for execve/builtin
     t_redir			*redirs;       // all redirections belonging to this command
-    int				is_builtin;    // 1 if command is builtin, 0 otherwise
+    // int			is_builtin;    // optional cached flag (not needed right now)
     pid_t			pid;           // child pid when forked (useful for wait)
     struct s_cmd	*next;         // next command in pipeline (after |)
 }	t_cmd;
@@ -97,8 +97,19 @@ size_t	ft_strlen(const char *s);
 void	dfree(char **arr);
 
 char	*get_path(char *cmd);
-void	execute(char *cmd, char **envp);
+t_cmd	process_input(char *input);
+int		execute(t_cmd *cmd, char **envp, int last_status);
+int		builtin_echo(t_cmd *cmd);
+int		builtin_cd(t_cmd *cmd);
+int		builtin_pwd(t_cmd *cmd);
+int		builtin_export(t_cmd *cmd);
+int		builtin_unset(t_cmd *cmd);
+int		builtin_env(t_cmd *cmd);
+int		builtin_exit(t_cmd *cmd, int last_status);
+int		error_msg(int status, const char *cmd, const char *msg);
+int		error_msg_arg(int status, const char *cmd,
+            const char *arg, const char *msg);
 
-void exit_msg(int exit_code, const char *msg);
+void	exit_msg(int exit_code, const char *msg);
 
 #endif

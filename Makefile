@@ -3,7 +3,15 @@ NAME = minishell
 CC = cc
 CFLAGS = -Wall -Wextra -Werror
 
-SRC = main.c path_resolver.c ft_split.c utils.c
+SRC = main.c \
+	exec_core.c \
+	exec_path.c \
+	builtin_io.c \
+	builtin_state.c \
+	builtin_exit.c \
+	error_msg.c \
+	ft_split.c \
+	utils.c
 OBJ = $(SRC:.c=.o)
 
 all: $(NAME)

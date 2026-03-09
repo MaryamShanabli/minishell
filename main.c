@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/22 16:55:22 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/02/22 18:27:49 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/03/10 00:27:16 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,59 +14,62 @@
 
 int g_signal = 0;
 
-static void	handle_eof(void)
+static void	handle_eof(int last_status)
 {
 	printf("exit\n");
-	exit(0);
+	exit(last_status);
 }
 
-static void	process_input(char *input, char **envp)
+t_cmd	process_input(char *input)
 {
-	int		status;
-	pid_t	p;
+	t_cmd	cmd;
 
-	if (!input || !*input)
+	cmd.argv = NULL;
+	cmd.redirs = NULL;
+	cmd.pid = 0;
+	cmd.next = NULL;
+	if (!input)
+		return (cmd);
+	cmd.argv = ft_split(input, ' ');
+	if (!cmd.argv)
+		return (cmd);
+	if (!cmd.argv[0])
 	{
-		free(input);
-		return ;
+		dfree(cmd.argv);
+		cmd.argv = NULL;
 	}
-	add_history(input);
-	p = fork();
-	if (p == -1)
-	{
-		perror("fork");
-		free(input);
-		return ;
-	}
-	if (p == 0)
-		execute(input, envp);
-	else
-	{
-		waitpid(p, &status, 0);
-		if (WIFEXITED(status))
-			g_signal = WEXITSTATUS(status);
-		else if (WIFSIGNALED(status))
-			g_signal = 128 + WTERMSIG(status);
-	}
-	free(input);
+	return (cmd);
 }
 
-int	main(int argc, char **argv, char **envp)
+int	main(int ac, char **av, char **envp)
 {
 	char	*input;
+	t_cmd	cmd;
+	t_shell	shell;
 
-	if (argc > 1)
+	shell.last_status = 0;
+
+	if (ac > 1)
 	{
-		input = argv[1];
-		process_input(ft_strdup(input), envp);
-		return (g_signal);
+		input = av[1];
+		cmd = process_input(input);
+		shell.last_status = execute(&cmd, envp, shell.last_status);
+		if (cmd.argv)
+			dfree(cmd.argv);
+		return (shell.last_status);
 	}
 	while (1)
 	{
 		input = readline("minishell$ ");
 		if (!input)
-			handle_eof();
-		process_input(input, envp);
+			handle_eof(shell.last_status);
+		if (*input)
+			add_history(input);
+		cmd = process_input(input);
+		shell.last_status = execute(&cmd, envp, shell.last_status);
+		if (cmd.argv)
+			dfree(cmd.argv);
+		free(input);
 	}
 	return (0);
 }
