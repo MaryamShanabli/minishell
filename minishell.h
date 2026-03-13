@@ -29,13 +29,13 @@ typedef enum e_token_type
     T_APPEND        // >>
 }	t_token_type;
 
-typedef enum e_redir_type
-{
-    R_IN,           // input redirection: <
-    R_OUT,          // output redirection: >
-    R_HEREDOC,      // heredoc: <<
-    R_APPEND        // append output redirection: >>
-}	t_redir_type;
+// typedef enum e_redir_type
+// {
+//     R_IN,           // input redirection: <
+//     R_OUT,          // output redirection: >
+//     R_HEREDOC,      // heredoc: <<
+//     R_APPEND        // append output redirection: >>
+// }	t_redir_type;
 
 typedef struct s_token
 {
@@ -46,7 +46,7 @@ typedef struct s_token
 
 typedef struct s_redir
 {
-    t_redir_type		type;        // which redirection kind this node is
+    e_token_type		type;        // which redirection kind this node is
     char				*target;     // filename or heredoc delimiter
     int					heredoc_fd;  // read-end fd for heredoc content (-1 if unused)
     struct s_redir		*next;       // next redirection for same command
