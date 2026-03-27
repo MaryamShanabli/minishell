@@ -1,9 +1,11 @@
 #include "minishell.h"
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-void	add_token(t_token **list, t_token *new)
+void add_token(t_token **list, t_token *new)
 {
-	t_token	*tmp;
+	t_token *tmp;
 
 	if (!new)
 		return;
@@ -18,48 +20,59 @@ void	add_token(t_token **list, t_token *new)
 	tmp->next = new;
 }
 
-t_token	*new_token(char *value, t_token_type type)
+t_token *new_token(char *value, t_token_type type)
 {
-	t_token	*tok;
+	t_token *tok;
 
 	tok = malloc(sizeof(t_token));
 	if (!tok)
-		return (NULL);
+		return NULL;
 	tok->value = strdup(value);
 	tok->type = type;
 	tok->next = NULL;
-	return (tok);
+	return tok;
 }
 
-char	*read_word(char *line, int *i)
+char *read_word(char *line, int *i)
 {
-	int		start;
-	int		len;
-	char	*word;
+	int start = *i;
+	int len = 0;
+	char quote = 0;
+	char *word;
 
+	if (line[*i] == '\'' || line[*i] == '"')
+	{
+		quote = line[*i];
+		int j = *i + 1;
+		while (line[j] && line[j] != quote)
+			j++;
+		len = j - *i + (line[j] == quote ? 1 : 0);
+		word = malloc(len + 1);
+		if (!word)
+			return NULL;
+		strncpy(word, line + *i, len);
+		word[len] = '\0';
+		*i += len;
+		return word;
+	}
 	start = *i;
-	while (line[*i]
-		&& line[*i] != ' '
-		&& line[*i] != '|'
-		&& line[*i] != '>'
-		&& line[*i] != '<')
+	while (line[*i] && line[*i] != ' ' && line[*i] != '|' && line[*i] != '>' && line[*i] != '<' && line[*i] != '\'' && line[*i] != '"')
 		(*i)++;
 	len = *i - start;
 	word = malloc(len + 1);
 	if (!word)
-		return (NULL);
+		return NULL;
 	strncpy(word, line + start, len);
 	word[len] = '\0';
-	return (word);
+	return word;
 }
 
-t_token	*lexer(char *line)
+t_token *lexer(char *line)
 {
-	int		i;
-	t_token	*tokens;
+	int i = 0;
+	t_token *tokens = NULL;
+	int first_word = 1;
 
-	i = 0;
-	tokens = NULL;
 	while (line[i])
 	{
 		while (line[i] == ' ')
@@ -70,6 +83,7 @@ t_token	*lexer(char *line)
 		{
 			add_token(&tokens, new_token("|", T_PIPE));
 			i++;
+			first_word = 1;
 		}
 		else if (line[i] == '>' && line[i + 1] == '>')
 		{
@@ -94,14 +108,22 @@ t_token	*lexer(char *line)
 		else
 		{
 			char *word = read_word(line, &i);
-			add_token(&tokens, new_token(word, T_WORD));
+			if (!word || !word[0])
+			{
+				if (word)
+					free(word);
+				continue;
+			}
+			t_token_type type = first_word ? T_COMMAND : T_ARG;
+			add_token(&tokens, new_token(word, type));
+			first_word = 0;
 			free(word);
 		}
 	}
-	return (tokens);
+	return tokens;
 }
 
-void	print_tokens(t_token *list)
+void print_tokens(t_token *list)
 {
 	while (list)
 	{

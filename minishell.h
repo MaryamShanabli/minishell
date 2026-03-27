@@ -92,5 +92,8 @@ int		builtin_exit(t_cmd *cmd, int last_status);
 int		error_msg(int status, const char *cmd, const char *msg);
 int		error_msg_arg(int status, const char *cmd,
             const char *arg, const char *msg);
+t_token *lexer(char *line);
+void print_tokens(t_token *list);
+void expand_variables(t_token *tokens, int last_status);
 
 #endif
