@@ -21,12 +21,14 @@ extern volatile sig_atomic_t g_signal;
 
 typedef enum e_token_type
 {
-    T_WORD,         // normal text token (command, arg, filename, etc.)
-    T_PIPE,         // |
-    T_REDIR_IN,     // <
-    T_REDIR_OUT,    // >
-    T_HEREDOC,      // <<
-    T_APPEND        // >>
+	T_COMMAND,		// command name (first word in command line)
+	T_ARG,			// argument or option
+	T_FILENAME,		// filename for redirection target
+	T_PIPE,			// | (pipe operator)
+	T_REDIR_IN,		// < (input redirection)
+	T_REDIR_OUT,	// > (output redirection)
+	T_HEREDOC,		// << (heredoc)
+	T_APPEND		// >> (append output)
 }	t_token_type;
 
 // typedef enum e_redir_type
