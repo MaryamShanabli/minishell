@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   builtin_exit.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/03/27 20:04:02 by mshanabl          #+#    #+#             */
+/*   Updated: 2026/03/27 20:05:57 by mshanabl         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "minishell.h"
 
 static int	is_numeric_arg(const char *arg)
@@ -20,15 +32,15 @@ static int	is_numeric_arg(const char *arg)
 	return (1);
 }
 
-int	builtin_exit(t_cmd *cmd, int last_status)
+int	builtin_exit(t_cmd *cmd, int status)
 {
 	char			*end;
-	long long	code;
+	long long		code;
 
 	if (isatty(STDIN_FILENO))
 		write(2, "exit\n", 5);
 	if (!cmd->argv[1])
-		return ((unsigned char)last_status);
+		return ((unsigned char)status);
 	if (!is_numeric_arg(cmd->argv[1]))
 		return (error_msg_arg(2, "exit", cmd->argv[1],
 				"numeric argument required"));

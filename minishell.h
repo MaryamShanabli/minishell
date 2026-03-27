@@ -80,15 +80,18 @@ void	dfree(char **arr);
 
 char	*get_path(char *cmd);
 t_cmd	process_input(char *input);
-int		execute(t_cmd *cmd, char **envp, int last_status);
-int		execute_pipeline(t_cmd *cmd, char **envp, int last_status);
+int		execute(t_cmd *cmd, char **envp, int status);
+int		execute_pipeline(t_cmd *cmd, char **envp, int status);
+int		is_builtin(char *name);
+int		execute_builtin(t_cmd *cmd, int status);
+void		exec_child(t_cmd *cmd, char **envp);
 int		builtin_echo(t_cmd *cmd);
 int		builtin_cd(t_cmd *cmd);
 int		builtin_pwd(t_cmd *cmd);
 int		builtin_export(t_cmd *cmd);
 int		builtin_unset(t_cmd *cmd);
 int		builtin_env(t_cmd *cmd);
-int		builtin_exit(t_cmd *cmd, int last_status);
+int		builtin_exit(t_cmd *cmd, int status);
 int		error_msg(int status, const char *cmd, const char *msg);
 int		error_msg_arg(int status, const char *cmd,
             const char *arg, const char *msg);
