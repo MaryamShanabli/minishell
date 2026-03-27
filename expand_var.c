@@ -41,7 +41,7 @@ static char *expand_one(const char *str, int last_status)
 
 	if (!result)
 	{
-		// فشل الحجز
+	
 		return NULL;
 	}
 
