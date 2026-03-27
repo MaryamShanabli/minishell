@@ -7,7 +7,7 @@ int	builtin_echo(t_cmd *cmd)
 
 	i = 1;
 	newline = 1;
-	if (cmd->argv[1] && !strcmp(cmd->argv[1], "-n"))
+	if (cmd->argv[1] && !ft_strcmp(cmd->argv[1], "-n"))
 	{
 		newline = 0;
 		i++;

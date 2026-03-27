@@ -28,16 +28,16 @@ int	builtin_exit(t_cmd *cmd, int last_status)
 	if (isatty(STDIN_FILENO))
 		write(2, "exit\n", 5);
 	if (!cmd->argv[1])
-		exit((unsigned char)last_status);
+		return ((unsigned char)last_status);
 	if (!is_numeric_arg(cmd->argv[1]))
-		exit(error_msg_arg(2, "exit", cmd->argv[1],
+		return (error_msg_arg(2, "exit", cmd->argv[1],
 				"numeric argument required"));
 	if (cmd->argv[2])
 		return (error_msg(1, "exit", "too many arguments"));
 	errno = 0;
 	code = strtoll(cmd->argv[1], &end, 10);
 	if (errno == ERANGE || (end && *end))
-		exit(error_msg_arg(2, "exit", cmd->argv[1],
+		return (error_msg_arg(2, "exit", cmd->argv[1],
 				"numeric argument required"));
-	exit((unsigned char)code);
+	return ((unsigned char)code);
 }

@@ -25,9 +25,3 @@ int	error_msg_arg(int status, const char *cmd,
 	write(2, "\n", 1);
 	return (status);
 }
-
-void	exit_msg(int exit_code, const char *msg)
-{
-	perror(msg);
-	exit(exit_code);
-}

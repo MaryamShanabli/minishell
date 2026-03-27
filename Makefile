@@ -6,6 +6,7 @@ CFLAGS = -Wall -Wextra -Werror
 SRC = main.c \
 	exec_core.c \
 	exec_path.c \
+	exec_pipe.c \
 	builtin_io.c \
 	builtin_state.c \
 	builtin_exit.c \

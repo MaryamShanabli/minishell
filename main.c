@@ -6,26 +6,26 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/22 16:55:22 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/03/10 00:27:16 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/03/27 18:36:08 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int g_signal = 0;
+volatile sig_atomic_t g_signal = 0;
 
 static void	handle_eof(int last_status)
 {
-	printf("exit\n");
-	exit(last_status);
+	if (isatty(STDIN_FILENO))
+		write(1, "exit\n", 5);
+	(void)last_status;
 }
 
 t_cmd	process_input(char *input)
 {
 	t_cmd	cmd;
 
-	cmd.argv = NULL;
-	cmd.redirs = NULL;
+	cmd.argv = NULL;	
 	cmd.pid = 0;
 	cmd.next = NULL;
 	if (!input)
@@ -45,31 +45,38 @@ int	main(int ac, char **av, char **envp)
 {
 	char	*input;
 	t_cmd	cmd;
-	t_shell	shell;
+	int status;
 
-	shell.last_status = 0;
-
+	status = 0;
 	if (ac > 1)
 	{
 		input = av[1];
 		cmd = process_input(input);
-		shell.last_status = execute(&cmd, envp, shell.last_status);
+		status = execute(&cmd, envp, status);
 		if (cmd.argv)
 			dfree(cmd.argv);
-		return (shell.last_status);
+		return (status);
 	}
 	while (1)
 	{
 		input = readline("minishell$ ");
 		if (!input)
-			handle_eof(shell.last_status);
-		if (*input)
-			add_history(input);
+		{
+			handle_eof(status);
+			break ;
+		}
+		add_history(input);
 		cmd = process_input(input);
-		shell.last_status = execute(&cmd, envp, shell.last_status);
+		status = execute(&cmd, envp, status);
+		if (cmd.argv && !ft_strcmp(cmd.argv[0], "exit"))
+		{
+			dfree(cmd.argv);
+			free(input);
+			break ;
+		}
 		if (cmd.argv)
 			dfree(cmd.argv);
 		free(input);
 	}
-	return (0);
+	exit(status);
 }

@@ -4,28 +4,28 @@ static int	is_builtin(char *name)
 {
 	if (!name)
 		return (0);
-	if (!strcmp(name, "echo") || !strcmp(name, "cd") || !strcmp(name, "pwd")
-		|| !strcmp(name, "export") || !strcmp(name, "unset")
-		|| !strcmp(name, "env") || !strcmp(name, "exit"))
+	if (!ft_strcmp(name, "echo") || !ft_strcmp(name, "cd") || !ft_strcmp(name, "pwd")
+		|| !ft_strcmp(name, "export") || !ft_strcmp(name, "unset")
+		|| !ft_strcmp(name, "env") || !ft_strcmp(name, "exit"))
 		return (1);
 	return (0);
 }
 
 static int	execute_builtin(t_cmd *cmd, int last_status)
 {
-	if (!strcmp(cmd->argv[0], "echo"))
+	if (!ft_strcmp(cmd->argv[0], "echo"))
 		return (builtin_echo(cmd));
-	else if (!strcmp(cmd->argv[0], "cd"))
+	else if (!ft_strcmp(cmd->argv[0], "cd"))
 		return (builtin_cd(cmd));
-	else if (!strcmp(cmd->argv[0], "pwd"))
+	else if (!ft_strcmp(cmd->argv[0], "pwd"))
 		return (builtin_pwd(cmd));
-	else if (!strcmp(cmd->argv[0], "export"))
+	else if (!ft_strcmp(cmd->argv[0], "export"))
 		return (builtin_export(cmd));
-	else if (!strcmp(cmd->argv[0], "unset"))
+	else if (!ft_strcmp(cmd->argv[0], "unset"))
 		return (builtin_unset(cmd));
-	else if (!strcmp(cmd->argv[0], "env"))
+	else if (!ft_strcmp(cmd->argv[0], "env"))
 		return (builtin_env(cmd));
-	else if (!strcmp(cmd->argv[0], "exit"))
+	else if (!ft_strcmp(cmd->argv[0], "exit"))
 		return (builtin_exit(cmd, last_status));
 	return (1);
 }
@@ -62,13 +62,14 @@ static int	execute_external(t_cmd *cmd, char **envp)
 	return (1);
 }
 
-int		execute(t_cmd *cmd, char **envp, int last_status)
+int	execute(t_cmd *cmd, char **envp, int last_status)
 {
-	if (!cmd || !cmd->argv || !cmd->argv[0])
-		return (last_status);
-	if (is_builtin(cmd->argv[0]))
-		return (execute_builtin(cmd, last_status));
-	else
-		return (execute_external(cmd, envp));
+    if (!cmd || !cmd->argv || !cmd->argv[0])
+        return (last_status);
+    if (cmd->next)
+        return (execute_pipeline(cmd, envp, last_status));
+    if (is_builtin(cmd->argv[0]))
+        return (execute_builtin(cmd, last_status));
+    return (execute_external(cmd, envp));
 }
 
