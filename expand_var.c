@@ -2,7 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdio.h>
+
+typedef struct s_expand
+{
+	const char	*in;
+	char		*out_buf;
+	size_t		in_pos;
+	size_t		used_out;
+	size_t		out_cap;
+}t_expand;
 
 static void itoa_simple(int n, char *buf)
 {
@@ -32,78 +40,151 @@ static void itoa_simple(int n, char *buf)
 	}
 }
 
+static int	append_char(t_expand *exp, char c)
+{
+	char	*new_buf;
+	size_t	new_cap;
+
+	if (exp->used_out + 1 >= exp->out_cap)
+	{
+		new_cap = exp->out_cap * 2;
+		new_buf = realloc(exp->out_buf, new_cap);
+		if (!new_buf)
+			return (0);
+		exp->out_buf = new_buf;
+		exp->out_cap = new_cap;
+	}
+	exp->out_buf[(exp->used_out)++] = c;
+	return (1);
+}
+
+static int	append_str(t_expand *exp, const char *s)
+{
+	size_t	i;
+
+	i = 0;
+	while (s && s[i])
+	{
+		if (!append_char(exp, s[i]))
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+static size_t	parse_name(const char *s, char *name, int braced)
+{
+	size_t	i;
+
+	i = 0;
+	if (!(isalpha((unsigned char)s[i]) || s[i] == '_'))
+		return (0);
+	while (s[i] && (isalnum((unsigned char)s[i]) || s[i] == '_'))
+	{
+		name[i] = s[i];
+		i++;
+	}
+	if (braced)
+	{
+		if (s[i] != '}')
+			return (0);
+		name[i] = '\0';
+		return (i + 1);
+	}
+	name[i] = '\0';
+	return (i);
+}
+
+static int	handle_dollar(t_expand *exp, int last_status)
+{
+	char	name[256];
+	char	nbr[12];
+	const char	*val;
+	size_t	consumed;
+
+	if (exp->in[exp->in_pos + 1] == '\0')
+		return (append_char(exp, '$'));
+	if (exp->in[exp->in_pos + 1] == '?')
+	{
+		itoa_simple(last_status, nbr);
+		exp->in_pos += 2;
+		return (append_str(exp, nbr));
+	}
+	if (exp->in[exp->in_pos + 1] == '$')
+	{
+		itoa_simple((int)getpid(), nbr);
+		exp->in_pos += 2;
+		return (append_str(exp, nbr));
+	}
+	if (exp->in[exp->in_pos + 1] == '{')
+	{
+		consumed = parse_name(exp->in + exp->in_pos + 2, name, 1);
+		if (consumed == 0)
+			return (append_char(exp, exp->in[(exp->in_pos)++]));
+		exp->in_pos += consumed + 2;
+		val = getenv(name);
+		return (append_str(exp, val));
+	}
+	consumed = parse_name(exp->in + exp->in_pos + 1, name, 0);
+	if (consumed == 0)
+		return (append_char(exp, exp->in[(exp->in_pos)++]));
+	exp->in_pos += consumed + 1;
+	val = getenv(name);
+	return (append_str(exp, val));
+}
+
 static char *expand_one(const char *str, int last_status)
 {
-	size_t len = strlen(str);
-	char *result = malloc(len * 8 + 64);
-	size_t ri = 0;
-	int in_single = 0;
+	t_expand	exp;
+	int		in_single;
+	int		in_double;
 
-	if (!result)
-	{
-	
-		return NULL;
-	}
+	exp.in = str;
+	exp.out_cap = 64;
+	exp.used_out = 0;
+	exp.in_pos = 0;
+	in_single = 0;
+	in_double = 0;
+	exp.out_buf = malloc(exp.out_cap);
+	if (!exp.out_buf)
+		return (NULL);
 
-	for (size_t i = 0; i < len;)
+	while (exp.in[exp.in_pos])
 	{
-		if (str[i] == '\'')
+		if (exp.in[exp.in_pos] == '\'' && !in_double)
 		{
 			in_single = !in_single;
-			i++;
+			exp.in_pos++;
 			continue;
 		}
-		if (str[i] == '"')
+		if (exp.in[exp.in_pos] == '"' && !in_single)
 		{
-			i++;
+			in_double = !in_double;
+			exp.in_pos++;
 			continue;
 		}
-		if (str[i] == '$' && !in_single)
+		if (exp.in[exp.in_pos] == '$' && !in_single)
 		{
-			if (str[i + 1] == '?')
+			if (!handle_dollar(&exp, last_status))
 			{
-				char buf[16];
-				itoa_simple(last_status, buf);
-				size_t l = strlen(buf);
-				memcpy(result + ri, buf, l);
-				ri += l;
-				i += 2;
-				continue;
+				free(exp.out_buf);
+				return (NULL);
 			}
-			size_t var_start = i + 1;
-			size_t var_len = 0;
-			while (str[var_start + var_len] &&
-				(isalnum((unsigned char)str[var_start + var_len]) ||
-				str[var_start + var_len] == '_'))
-				var_len++;
-			if (var_len == 0)
-			{
-				result[ri++] = str[i++];
-				continue;
-			}
-			char *var = malloc(var_len + 1);
-			if (!var)
-			{
-				free(result);
-				return NULL;
-			}
-			strncpy(var, str + var_start, var_len);
-			var[var_len] = '\0';
-			const char *val = getenv(var);
-			free(var);
-			if (val)
-			{
-				size_t l = strlen(val);
-				memcpy(result + ri, val, l);
-				ri += l;
-			}
-			i = var_start + var_len;
 			continue;
 		}
-		result[ri++] = str[i++];
+		if (!append_char(&exp, exp.in[exp.in_pos]))
+		{
+			free(exp.out_buf);
+			return (NULL);
+		}
+		exp.in_pos++;
 	}
-	result[ri] = '\0';
-	return result;
+	if (!append_char(&exp, '\0'))
+	{
+		free(exp.out_buf);
+		return (NULL);
+	}
+	return (exp.out_buf);
 }
 
 void expand_variables(t_token *tokens, int last_status)
