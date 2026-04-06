@@ -11,6 +11,8 @@ SRC = main.c \
 	builtin_state.c \
 	builtin_exit.c \
 	error_msg.c \
+	token.c \
+	expand_var.c \
 	ft_split.c \
 	utils.c
 OBJ = $(SRC:.c=.o)
