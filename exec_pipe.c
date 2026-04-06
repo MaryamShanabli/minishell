@@ -6,11 +6,28 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:08:25 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/03/27 20:44:27 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/03/28 22:42:18 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+#include <fcntl.h>
+
+static t_redir	*is_redir(t_cmd *cmd, t_redir_type type)
+{
+	t_redir	*redir;
+
+	if (!cmd || !cmd->redirs)
+		return (NULL);
+	redir = cmd->redirs;
+	while (redir)
+	{
+		if (redir->type == type)
+			return (redir);
+		redir = redir->next;
+	}
+	return (NULL);
+}
 
 static void	exec_pipe(t_cmd *cmd, t_exec *exec, char **envp, int status)
 {
@@ -19,9 +36,30 @@ static void	exec_pipe(t_cmd *cmd, t_exec *exec, char **envp, int status)
 		return (perror("fork"));
 	if (cmd->pid == 0)
 	{
-		if (exec->prev_pipe_read != -1)
+		t_redir	*redir_in;
+		t_redir	*redir_out;
+
+		redir_in = is_redir(cmd, R_IN);
+		if (redir_in)
+		{
+			exec->in_fd = open(redir_in->target, O_RDONLY);
+			if (exec->in_fd == -1)
+				exit(error_msg(127, redir_in->target, "operation not permitted"));
+			dup2(exec->in_fd, STDIN_FILENO);
+			close(exec->in_fd);
+		}
+		else if (exec->prev_pipe_read != -1)
 			dup2(exec->prev_pipe_read, STDIN_FILENO);
-		if (cmd->next)
+		redir_out = is_redir(cmd, R_OUT);
+		if (redir_out)
+		{
+			exec->out_fd = open(redir_out->target, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			if (exec->out_fd == -1)
+				exit(error_msg(127, redir_out->target, "operation not permitted"));
+			dup2(exec->out_fd, STDOUT_FILENO);
+			close(exec->out_fd);
+		}
+		else if (cmd->next)
 			dup2(exec->pipe_fd[1], STDOUT_FILENO);
 		if (is_builtin(cmd->argv[0]))
 			exit(execute_builtin(cmd, status));

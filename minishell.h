@@ -17,7 +17,7 @@ extern volatile sig_atomic_t g_signal;
 // Subject requirement: at most one global variable for signals.
 // g_signal stores the last received signal number (e.g., SIGINT=2, SIGTERM=15).
 
-// extern volatile sig_atomic_t	g_signal;
+extern volatile sig_atomic_t	g_signal;
 
 typedef enum e_token_type
 {
@@ -31,13 +31,13 @@ typedef enum e_token_type
 	T_APPEND		// >> (append output)
 }	t_token_type;
 
-// typedef enum e_redir_type
-// {
-//     R_IN,           // input redirection: <
-//     R_OUT,          // output redirection: >
-//     R_HEREDOC,      // heredoc: <<
-//     R_APPEND        // append output redirection: >>
-// }	t_redir_type;
+typedef enum e_redir_type
+{
+    R_IN,           // input redirection: <
+    R_OUT,          // output redirection: >
+    R_HEREDOC,      // heredoc: <<
+    R_APPEND        // append output redirection: >>
+}	t_redir_type;
 
 typedef struct s_token
 {
@@ -46,19 +46,19 @@ typedef struct s_token
     struct s_token	*next;      // next token in linked list
 }	t_token;
 
-// typedef struct s_redir
-// {
-//     t_redir_type		type;        // which redirection kind this node is
-//     char				*target;     // filename or heredoc delimiter
-//     int					heredoc_fd;  // read-end fd for heredoc content (-1 if unused)
-//     struct s_redir		*next;       // next redirection for same command
-// }	t_redir;
+typedef struct s_redir
+{
+    t_redir_type		type;        // which redirection kind this node is
+    char				*target;     // filename or heredoc delimiter
+    int					heredoc_fd;  // read-end fd for heredoc content (-1 if unused)
+    struct s_redir		*next;       // next redirection for same command
+}	t_redir;
 
 typedef struct s_cmd
 {
     char			**argv;        // NULL-terminated args array for execve/builtin
-    //t_redir			*redirs;       // all redirections belonging to this command
-    // int			is_builtin;    // optional cached flag (not needed right now)
+    t_redir			*redirs;       // all redirections belonging to this command
+    int			is_builtin;    // optional cached flag (not needed right now)
     pid_t			pid;           // child pid when forked (useful for wait)
     struct s_cmd	*next;         // next command in pipeline (after |)
 }	t_cmd;
