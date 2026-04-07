@@ -6,50 +6,88 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:02 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/03/27 20:05:57 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/07 04:45:38 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+#include <limits.h>
 
-static int	is_numeric_arg(const char *arg)
+static int	read_sign(const char *arg, int *i, int *sign)
 {
-	int	i;
-
 	if (!arg || !arg[0])
 		return (0);
-	i = 0;
-	if (arg[i] == '+' || arg[i] == '-')
-		i++;
-	if (!arg[i])
+	*i = 0;
+	*sign = 1;
+	if (arg[*i] == '+' || arg[*i] == '-')
+	{
+		if (arg[*i] == '-')
+			*sign = -1;
+		(*i)++;
+	}
+	if (!arg[*i])
 		return (0);
+	return (1);
+}
+
+static int	read_digits(const char *arg, int i,
+		unsigned long long limit, unsigned long long *acc)
+{
+	int	digit;
+
+	*acc = 0;
 	while (arg[i])
 	{
-		if (arg[i] < '0' || arg[i] > '9')
+		digit = arg[i] - '0';
+		if (digit < 0 || digit > 9)
 			return (0);
+		if (*acc > limit / 10 || (*acc == limit / 10
+				&& (unsigned long long)digit > limit % 10))
+			return (0);
+		*acc = *acc * 10 + (unsigned long long)digit;
 		i++;
 	}
 	return (1);
 }
 
+static int	parse_exit_code(const char *arg, long long *code)
+{
+	int					i;
+	int					sign;
+	unsigned long long	acc;
+	unsigned long long	limit;
+
+	if (!read_sign(arg, &i, &sign))
+		return (0);
+	if (arg[i] == '+' || arg[i] == '-')
+		return (0);
+	if (sign == -1)
+		limit = (unsigned long long)LLONG_MAX + 1ULL;
+	else
+		limit = (unsigned long long)LLONG_MAX;
+	if (!read_digits(arg, i, limit, &acc))
+		return (0);
+	if (sign == -1 && acc == (unsigned long long)LLONG_MAX + 1ULL)
+		*code = LLONG_MIN;
+	else if (sign == -1)
+		*code = -(long long)acc;
+	else
+		*code = (long long)acc;
+	return (1);
+}
+
 int	builtin_exit(t_cmd *cmd, int status)
 {
-	char			*end;
 	long long		code;
 
 	if (isatty(STDIN_FILENO))
 		write(2, "exit\n", 5);
 	if (!cmd->argv[1])
 		return ((unsigned char)status);
-	if (!is_numeric_arg(cmd->argv[1]))
+	if (!parse_exit_code(cmd->argv[1], &code))
 		return (error_msg_arg(2, "exit", cmd->argv[1],
 				"numeric argument required"));
 	if (cmd->argv[2])
 		return (error_msg(1, "exit", "too many arguments"));
-	errno = 0;
-	code = strtoll(cmd->argv[1], &end, 10);
-	if (errno == ERANGE || (end && *end))
-		return (error_msg_arg(2, "exit", cmd->argv[1],
-				"numeric argument required"));
 	return ((unsigned char)code);
 }

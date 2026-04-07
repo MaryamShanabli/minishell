@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:11 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/03/27 20:04:14 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/07 05:15:09 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,13 +26,13 @@ int	builtin_echo(t_cmd *cmd)
 	}
 	while (cmd->argv[i])
 	{
-		printf("%s", cmd->argv[i]);
+		write(1, cmd->argv[i], ft_strlen(cmd->argv[i]));
 		if (cmd->argv[i + 1])
-			printf(" ");
+			write(1, " ", 1);
 		i++;
 	}
 	if (newline)
-		printf("\n");
+		write(1, "\n", 1);
 	return (0);
 }
 
@@ -44,7 +44,8 @@ int	builtin_pwd(t_cmd *cmd)
 		return (error_msg(1, "pwd", "too many arguments"));
 	if (!getcwd(cwd, sizeof(cwd)))
 		return (perror("pwd"), 1);
-	printf("%s\n", cwd);
+	write(1, cwd, ft_strlen(cwd));
+	write(1, "\n", 1);
 	return (0);
 }
 
@@ -58,7 +59,8 @@ int	builtin_env(t_cmd *cmd)
 	i = 0;
 	while (environ[i])
 	{
-		printf("%s\n", environ[i]);
+		write(1, environ[i], ft_strlen(environ[i]));
+		write(1, "\n", 1);
 		i++;
 	}
 	return (0);

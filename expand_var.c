@@ -1,7 +1,5 @@
 #include "minishell.h"
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 
 typedef struct s_expand
 {
@@ -11,6 +9,16 @@ typedef struct s_expand
 	size_t		used_out;
 	size_t		out_cap;
 }t_expand;
+
+static int	ft_isalpha(char c)
+{
+	return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));
+}
+
+static int	ft_isalnum(char c)
+{
+	return (ft_isalpha(c) || (c >= '0' && c <= '9'));
+}
 
 static void itoa_simple(int n, char *buf)
 {
@@ -44,13 +52,21 @@ static int	append_char(t_expand *exp, char c)
 {
 	char	*new_buf;
 	size_t	new_cap;
+	size_t	i;
 
 	if (exp->used_out + 1 >= exp->out_cap)
 	{
 		new_cap = exp->out_cap * 2;
-		new_buf = realloc(exp->out_buf, new_cap);
+		new_buf = malloc(new_cap);
 		if (!new_buf)
 			return (0);
+		i = 0;
+		while (i < exp->used_out)
+		{
+			new_buf[i] = exp->out_buf[i];
+			i++;
+		}
+		free(exp->out_buf);
 		exp->out_buf = new_buf;
 		exp->out_cap = new_cap;
 	}
@@ -77,9 +93,9 @@ static size_t	parse_name(const char *s, char *name, int braced)
 	size_t	i;
 
 	i = 0;
-	if (!(isalpha((unsigned char)s[i]) || s[i] == '_'))
+	if (!(ft_isalpha(s[i]) || s[i] == '_'))
 		return (0);
-	while (s[i] && (isalnum((unsigned char)s[i]) || s[i] == '_'))
+	while (s[i] && (ft_isalnum(s[i]) || s[i] == '_'))
 	{
 		name[i] = s[i];
 		i++;
@@ -107,12 +123,6 @@ static int	handle_dollar(t_expand *exp, int last_status)
 	if (exp->in[exp->in_pos + 1] == '?')
 	{
 		itoa_simple(last_status, nbr);
-		exp->in_pos += 2;
-		return (append_str(exp, nbr));
-	}
-	if (exp->in[exp->in_pos + 1] == '$')
-	{
-		itoa_simple((int)getpid(), nbr);
 		exp->in_pos += 2;
 		return (append_str(exp, nbr));
 	}

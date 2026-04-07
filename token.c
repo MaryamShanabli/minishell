@@ -27,7 +27,7 @@ t_token *new_token(char *value, t_token_type type)
 	tok = malloc(sizeof(t_token));
 	if (!tok)
 		return NULL;
-	tok->value = strdup(value);
+	tok->value = ft_strdup(value);
 	tok->type = type;
 	tok->next = NULL;
 	return tok;
@@ -50,7 +50,7 @@ char *read_word(char *line, int *i)
 		word = malloc(len + 1);
 		if (!word)
 			return NULL;
-		strncpy(word, line + *i, len);
+		ft_strncpy(word, line + *i, len);
 		word[len] = '\0';
 		*i += len;
 		return word;
@@ -62,7 +62,7 @@ char *read_word(char *line, int *i)
 	word = malloc(len + 1);
 	if (!word)
 		return NULL;
-	strncpy(word, line + start, len);
+	ft_strncpy(word, line + start, len);
 	word[len] = '\0';
 	return word;
 }
