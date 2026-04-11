@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:19 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/11 16:58:56 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/11 17:05:07 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ static int	key_match(const char *env_entry, const char *key)
 		return (0);
 	while (key[i] && env_entry[i] && key[i] == env_entry[i])
 		i++;
-	if (!key[i] && env_entry[i] == '=')
+	if (!key[i] && (env_entry[i] == '=' || env_entry[i] == '\0'))
 		return (1);
 	return (0);
 }
@@ -31,6 +31,8 @@ static char	*make_env_entry(const char *key, const char *value)
 	char	*tmp;
 	char	*entry;
 
+	if (!value)
+		return (ft_strdup(key));
 	tmp = ft_strjoin(key, "=");
 	if (!tmp)
 		return (NULL);
@@ -185,7 +187,7 @@ int	builtin_export(t_cmd *cmd, char **envp)
 				status = 1;
 			*eq_pos = '=';
 		}
-		else if (update_env_var(envp, arg, ""))
+		else if (update_env_var(envp, arg, NULL))
 			status = 1;
 		i++;
 	}
