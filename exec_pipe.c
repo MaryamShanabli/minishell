@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:08:25 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/07 05:01:20 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/11 12:31:33 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ static void	exec_pipe(t_cmd *cmd, t_exec *exec, char **envp, int status)
 		if (apply_redirections(cmd))
 			exit(1);
 		if (is_builtin(cmd->argv[0]))
-			exit(execute_builtin(cmd, status));
+			exit(execute_builtin(cmd, status, envp));
 		else
 			exec_child(cmd, envp);
 	}

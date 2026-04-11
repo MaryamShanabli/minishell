@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:05:43 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/06 16:29:01 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/11 16:31:25 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,4 +122,24 @@ char	*ft_strncpy(char *dst, const char *src, size_t n)
 		i++;
 	}
 	return (dst);
+}
+
+int	is_valid(const char *s)
+{
+	int	i;
+
+	if (!s || !s[0])
+		return (0);
+	if (!((s[0] >= 'a' && s[0] <= 'z')
+			|| (s[0] >= 'A' && s[0] <= 'Z') || s[0] == '_'))
+		return (0);
+	i = 1;
+	while (s[i])
+	{
+		if (!((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= 'A' && s[i] <= 'Z')
+				|| (s[i] >= '0' && s[i] <= '9') || s[i] == '_'))
+			return (0);
+		i++;
+	}
+	return (1);
 }

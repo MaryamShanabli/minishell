@@ -35,29 +35,35 @@ t_token *new_token(char *value, t_token_type type)
 
 char *read_word(char *line, int *i)
 {
-	int start = *i;
-	int len = 0;
-	char quote = 0;
-	char *word;
+	int		start;
+	int		len;
+	char	quote;
+	char	*word;
 
-	if (line[*i] == '\'' || line[*i] == '"')
-	{
-		quote = line[*i];
-		int j = *i + 1;
-		while (line[j] && line[j] != quote)
-			j++;
-		len = j - *i + (line[j] == quote ? 1 : 0);
-		word = malloc(len + 1);
-		if (!word)
-			return NULL;
-		ft_strncpy(word, line + *i, len);
-		word[len] = '\0';
-		*i += len;
-		return word;
-	}
 	start = *i;
-	while (line[*i] && line[*i] != ' ' && line[*i] != '|' && line[*i] != '>' && line[*i] != '<' && line[*i] != '\'' && line[*i] != '"')
-		(*i)++;
+	quote = 0;
+	while (line[*i])
+	{
+		if (quote)
+		{
+			if (line[*i] == quote)
+				quote = 0;
+			(*i)++;
+		}
+		else
+		{
+			if (line[*i] == '\'' || line[*i] == '"')
+			{
+				quote = line[*i];
+				(*i)++;
+			}
+			else if (line[*i] == ' ' || line[*i] == '|'
+				|| line[*i] == '>' || line[*i] == '<')
+				break;
+			else
+				(*i)++;
+		}
+	}
 	len = *i - start;
 	word = malloc(len + 1);
 	if (!word)

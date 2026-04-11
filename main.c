@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/22 16:55:22 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/07 05:37:39 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/11 13:16:24 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,7 +149,7 @@ static int	append_arg(char ***argv, int *argc, const char *value)
 
 static int	syntax_pipe_error(void)
 {
-	error_msg(2, "syntax error near unexpected token", "`|'");
+	error_msg(2, "syntax error near unexpected token", NULL, "`|'");
 	return (0);
 }
 
@@ -157,7 +157,7 @@ static int	syntax_token_error(char *token)
 {
 	if (!token)
 		token = "newline";
-	error_msg(2, "syntax error near unexpected token", token);
+	error_msg(2, "syntax error near unexpected token", NULL, token);
 	return (0);
 }
 

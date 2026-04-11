@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:39 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/07 05:01:12 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/11 14:55:42 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,16 +24,16 @@ int	is_builtin(char *name)
 	return (0);
 }
 
-int	execute_builtin(t_cmd *cmd, int status)
+int	execute_builtin(t_cmd *cmd, int status, char **envp)
 {
 	if (!ft_strcmp(cmd->argv[0], "echo"))
 		return (builtin_echo(cmd));
 	else if (!ft_strcmp(cmd->argv[0], "cd"))
-		return (builtin_cd(cmd));
+		return (builtin_cd(cmd, envp));
 	else if (!ft_strcmp(cmd->argv[0], "pwd"))
 		return (builtin_pwd(cmd));
 	else if (!ft_strcmp(cmd->argv[0], "export"))
-		return (builtin_export(cmd));
+		return (builtin_export(cmd, envp));
 	else if (!ft_strcmp(cmd->argv[0], "unset"))
 		return (builtin_unset(cmd));
 	else if (!ft_strcmp(cmd->argv[0], "env"))
@@ -49,7 +49,7 @@ void	exec_child(t_cmd *cmd, char **envp)
 
 	path = get_path(cmd->argv[0]);
 	if (!path)
-		exit(error_msg(127, cmd->argv[0], "command not found"));
+		exit(error_msg(127, cmd->argv[0], NULL, "command not found"));
 	execve(path, cmd->argv, envp);
 	perror(path);
 	free(path);
@@ -81,7 +81,7 @@ static int	execute_external(t_cmd *cmd, char **envp)
 	return (1);
 }
 
-static int	execute_builtin_with_redir(t_cmd *cmd, int status)
+static int	execute_builtin_with_redir(t_cmd *cmd, int status, char **envp)
 {
 	int	saved_in;
 	int	saved_out;
@@ -95,7 +95,7 @@ static int	execute_builtin_with_redir(t_cmd *cmd, int status)
 	if (apply_redirections(cmd))
 		ret = 1;
 	else
-		ret = execute_builtin(cmd, status);
+		ret = execute_builtin(cmd, status, envp);
 	dup2(saved_in, STDIN_FILENO);
 	dup2(saved_out, STDOUT_FILENO);
 	close(saved_in);
@@ -110,6 +110,6 @@ int	execute(t_cmd *cmd, char **envp, int status)
 	if (cmd->next)
 		return (execute_pipeline(cmd, envp, status));
 	if (is_builtin(cmd->argv[0]))
-		return (execute_builtin_with_redir(cmd, status));
+		return (execute_builtin_with_redir(cmd, status, envp));
 	return (execute_external(cmd, envp));
 }

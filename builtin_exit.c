@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:02 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/07 04:45:38 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/11 13:15:32 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,9 +85,9 @@ int	builtin_exit(t_cmd *cmd, int status)
 	if (!cmd->argv[1])
 		return ((unsigned char)status);
 	if (!parse_exit_code(cmd->argv[1], &code))
-		return (error_msg_arg(2, "exit", cmd->argv[1],
+		return (error_msg(2, "exit", cmd->argv[1],
 				"numeric argument required"));
 	if (cmd->argv[2])
-		return (error_msg(1, "exit", "too many arguments"));
+		return (error_msg(1, "exit", NULL, "too many arguments"));
 	return ((unsigned char)code);
 }

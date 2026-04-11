@@ -12,12 +12,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-extern volatile sig_atomic_t g_signal;
-
 // Subject requirement: at most one global variable for signals.
 // g_signal stores the last received signal number (e.g., SIGINT=2, SIGTERM=15).
 
-extern volatile sig_atomic_t	g_signal;
+//extern volatile sig_atomic_t	g_signal;
 
 typedef enum e_token_type
 {
@@ -78,6 +76,7 @@ char	*ft_strncpy(char *dst, const char *src, size_t n);
 size_t	ft_strlen(const char *s);
 int		ft_strcmp(const char *s1, const char *s2);
 void	dfree(char **arr);
+int		is_valid(const char *s);
 
 char	*get_path(char *cmd);
 t_cmd	process_input(char *input, int last_status);
@@ -85,18 +84,17 @@ int		execute(t_cmd *cmd, char **envp, int status);
 int		execute_pipeline(t_cmd *cmd, char **envp, int status);
 int		apply_redirections(t_cmd *cmd);
 int		is_builtin(char *name);
-int		execute_builtin(t_cmd *cmd, int status);
+int		execute_builtin(t_cmd *cmd, int status, char **envp);
 void		exec_child(t_cmd *cmd, char **envp);
 int		builtin_echo(t_cmd *cmd);
-int		builtin_cd(t_cmd *cmd);
+int		builtin_cd(t_cmd *cmd, char **envp);
 int		builtin_pwd(t_cmd *cmd);
-int		builtin_export(t_cmd *cmd);
+int		builtin_export(t_cmd *cmd, char **envp);
 int		builtin_unset(t_cmd *cmd);
 int		builtin_env(t_cmd *cmd);
 int		builtin_exit(t_cmd *cmd, int status);
-int		error_msg(int status, const char *cmd, const char *msg);
-int		error_msg_arg(int status, const char *cmd,
-            const char *arg, const char *msg);
+int		error_msg(int status, const char *cmd,
+			const char *arg, const char *msg);
 t_token *lexer(char *line);
 void print_tokens(t_token *list);
 void expand_variables(t_token *tokens, int last_status);
