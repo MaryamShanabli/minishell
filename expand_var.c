@@ -91,13 +91,14 @@ static int	append_str(t_expand *exp, const char *s)
 static size_t	parse_name(const char *s, char *name, int braced)
 {
 	size_t	i;
-	size_t	len;
 
-	if (!is_valid(s))
+	if (!s || !s[0])
 		return (0);
-	len = ft_strlen(s);
+	if (!((s[0] >= 'a' && s[0] <= 'z') || (s[0] >= 'A' && s[0] <= 'Z')
+			|| s[0] == '_'))
+		return (0);
 	i = 0;
-	while (i < len && (ft_isalnum(s[i]) || s[i] == '_'))
+	while (s[i] && (ft_isalnum(s[i]) || s[i] == '_'))
 	{
 		name[i] = s[i];
 		i++;
