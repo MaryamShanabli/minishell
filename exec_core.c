@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_core.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:39 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/14 16:35:09 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/14 18:07:30 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,9 +103,45 @@ static int	execute_builtin_with_redir(t_cmd *cmd, t_shell *shell)
 	return (ret);
 }
 
+static int	execute_redir_only(t_cmd *cmd)
+{
+	int	saved_in;
+	int	saved_out;
+	int	ret;
+
+	saved_in = dup(STDIN_FILENO);
+	saved_out = dup(STDOUT_FILENO);
+	if (saved_in == -1 || saved_out == -1)
+		return (perror("dup"), 1);
+	ret = apply_redirections(cmd);
+	dup2(saved_in, STDIN_FILENO);
+	dup2(saved_out, STDOUT_FILENO);
+	close(saved_in);
+	close(saved_out);
+	if (ret)
+		return (1);
+	return (0);
+}
+
 int	execute(t_cmd *cmd, t_shell *shell)
 {
-	if (!cmd || !cmd->argv || !cmd->argv[0])
+	int	status;
+
+	if (!cmd)
+		return (shell->last_status);
+	/* Handle empty root with redirections and pipeline */
+	if ((!cmd->argv || !cmd->argv[0]) && cmd->redirs)
+	{
+		status = execute_redir_only(cmd);
+		if (status != 0)
+			return (status);
+		/* Continue with pipeline if it exists */
+		if (cmd->next)
+			return (execute_pipeline(cmd->next, shell));
+		return (0);
+	}
+	/* Handle empty root with no redirections */
+	if (!cmd->argv || !cmd->argv[0])
 		return (shell->last_status);
 	if (cmd->next)
 		return (execute_pipeline(cmd, shell));

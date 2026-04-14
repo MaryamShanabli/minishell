@@ -3,14 +3,33 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/22 16:55:22 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/14 16:49:26 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/14 18:29:32 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+/* Global signal variable - stores the last received signal number */
+volatile sig_atomic_t	g_signal = 0;
+
+static void	signal_handler(int signum)
+{
+	g_signal = signum;
+}
+
+static void	setup_signals(void)
+{
+	struct sigaction	sa;
+
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = SA_RESTART;
+	sa.sa_handler = signal_handler;
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+}
 
 static void	handle_eof(int status)
 {
@@ -105,9 +124,15 @@ static void	free_cmd_list(t_cmd *cmd)
 	if (!cmd)
 		return ;
 	if (cmd->argv)
+	{
 		dfree(cmd->argv);
+		cmd->argv = NULL;
+	}
 	if (cmd->redirs)
+	{
 		free_redirs(cmd->redirs);
+		cmd->redirs = NULL;
+	}
 	node = cmd->next;
 	while (node)
 	{
@@ -174,6 +199,37 @@ static int	parse_redirection(t_cmd *cmd, t_token **it)
 	return (1);
 }
 
+static void	unlink_empty_commands(t_cmd *first)
+{
+	t_cmd	*curr;
+	t_cmd	*next;
+
+	if (!first || !first->next)
+		return ;
+	curr = first;
+	while (curr && curr->next)
+	{
+		next = curr->next;
+		if (!next->argv || !next->argv[0])
+		{
+			/* Found empty command, move its redirs to prev and unlink */
+			if (next->redirs && !curr->redirs)
+				curr->redirs = next->redirs;
+			else if (next->redirs)
+			{
+				/* Move redirs to next->next if it exists */
+				if (next->next && !next->next->redirs)
+					next->next->redirs = next->redirs;
+			}
+			curr->next = next->next;
+			free(next);
+			next = curr->next;
+		}
+		else
+			curr = next;
+	}
+}
+
 t_cmd	process_input(char *input, t_shell *shell)
 {
 	t_cmd	cmd;
@@ -208,7 +264,7 @@ t_cmd	process_input(char *input, t_shell *shell)
 		}
 		else if (it->type == T_PIPE)
 		{
-			if (current_argc == 0)
+			if (current_argc == 0 && current->redirs == NULL)
 				return (free_tokens(tokens), free_cmd_list(&cmd),
 					syntax_pipe_error(), cmd.pid = -2, cmd);
 			current->argv = current_argv;
@@ -226,6 +282,7 @@ t_cmd	process_input(char *input, t_shell *shell)
 		return (free_tokens(tokens), free_cmd_list(&cmd),
 			syntax_pipe_error(), cmd.pid = -2, cmd);
 	current->argv = current_argv;
+	unlink_empty_commands(&cmd);
 	free_tokens(tokens);
 	return (cmd);
 }
@@ -240,6 +297,7 @@ int	main(int ac, char **av, char **envp)
 	if (!shell.env)
 		return (1);
 	shell.last_status = 0;
+	setup_signals();
 	if (ac > 1)
 	{
 		input = av[1];
@@ -254,11 +312,24 @@ int	main(int ac, char **av, char **envp)
 	}
 	while (1)
 	{
+		if (g_signal == SIGINT)
+		{
+			g_signal = 0;
+			write(1, "\n", 1);
+			continue ;
+		}
+		else if (g_signal == SIGQUIT)
+			g_signal = 0;
 		input = readline("minishell$ ");
 		if (!input)
 		{
 			handle_eof(shell.last_status);
 			break ;
+		}
+		if (!*input)
+		{
+			free(input);
+			continue ;
 		}
 		add_history(input);
 		cmd = process_input(input, &shell);
@@ -279,66 +350,3 @@ int	main(int ac, char **av, char **envp)
 	exit(shell.last_status);
 }
 
-// 1. Mandatory builtins not implemented yet
-// cd, export, unset are placeholders returning "not implemented yet" in builtin_state.c:15, builtin_state.c:22, builtin_state.c:29
-// 2. Parser/AST contract incomplete for redirections
-// t_cmd.redirs exists in minishell.h:59, but process_input currently only builds argv/pipes in main.c:84 and does not build redirection lists.
-// So <, >, >>, << are tokenized but not fully parsed/executed as required.
-// 3. Signals behavior likely incomplete
-// One global signal variable is good (main.c:15), but full interactive behavior (Ctrl-C, Ctrl-\, prompt redisplay) is not shown as complete yet.
-// 4. Bash parity differences observed
-// pwd extra differs from bash behavior in your current implementation (builtin_io.c:44).
-
-// Plan to fix redirections end-to-end:
-
-// 1. Define parsing contract clearly
-// t_cmd.argv = only command + args
-// t_cmd.redirs = linked list of redirections in encounter order
-// each redir node:
-// type: R_IN, R_OUT, R_APPEND, R_HEREDOC
-// target: filename or heredoc delimiter
-// 2. Add parser helpers (in main.c or new parser file)
-// new_redir(type, target)
-// add_redir(cmd, redir)
-// map_token_to_redir_type(token_type)
-// parse_redirection(it, current_cmd):
-// expects redir token then filename token
-// on error prints syntax error and fails cleanly
-// 3. Update process_input token loop
-// current behavior:
-// T_COMMAND/T_ARG -> append to argv
-// T_PIPE -> finalize current command, allocate next
-// new behavior add:
-// T_REDIR_IN/T_REDIR_OUT/T_APPEND/T_HEREDOC:
-// consume next token as target
-// create redir node
-// append to current->redirs
-// do not add redirection tokens to argv
-// 4. Syntax checks to enforce
-// redirection without target: cat >
-// pipe with empty side: | ls, ls |
-// two operators in invalid sequence: cat > | wc
-// on syntax failure:
-// free tokens
-// free partially built cmd/redirs
-// return empty cmd + status 2 style
-// 5. Memory management updates
-// extend free_cmd_list to free each command’s redirs list (target + node)
-// this is required before testing heavily
-// 6. Execution integration
-// before exec in child:
-// apply redirections from cmd->redirs in order
-// last input redirection wins for stdin
-// last output/append wins for stdout
-// for pipeline:
-// set pipe fds first, then apply redirections (redir should override pipe end if both exist)
-// 7. Heredoc (<<) strategy
-// parser stores delimiter in redir node
-// execution phase handles reading until delimiter and wiring input fd
-// can first implement parse + storage, then execute part next
-// 8. Validation sequence
-// cat < infile
-// echo hi > out
-// echo hi >> out
-// cat < infile | grep x > out
-// error cases: cat >, | ls, cat <<
