@@ -14,6 +14,7 @@ SRC = main.c \
 	error_msg.c \
 	token.c \
 	expand_var.c \
+	env_utils.c \
 	ft_split.c \
 	utils.c
 OBJ = $(SRC:.c=.o)

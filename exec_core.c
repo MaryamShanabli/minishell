@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:39 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/11 14:55:42 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/14 16:35:09 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,33 +24,33 @@ int	is_builtin(char *name)
 	return (0);
 }
 
-int	execute_builtin(t_cmd *cmd, int status, char **envp)
+int	execute_builtin(t_cmd *cmd, t_shell *shell)
 {
 	if (!ft_strcmp(cmd->argv[0], "echo"))
 		return (builtin_echo(cmd));
 	else if (!ft_strcmp(cmd->argv[0], "cd"))
-		return (builtin_cd(cmd, envp));
+		return (builtin_cd(cmd, shell));
 	else if (!ft_strcmp(cmd->argv[0], "pwd"))
 		return (builtin_pwd(cmd));
 	else if (!ft_strcmp(cmd->argv[0], "export"))
-		return (builtin_export(cmd, envp));
+		return (builtin_export(cmd, shell));
 	else if (!ft_strcmp(cmd->argv[0], "unset"))
-		return (builtin_unset(cmd));
+		return (builtin_unset(cmd, shell));
 	else if (!ft_strcmp(cmd->argv[0], "env"))
-		return (builtin_env(cmd));
+		return (builtin_env(cmd, shell));
 	else if (!ft_strcmp(cmd->argv[0], "exit"))
-		return (builtin_exit(cmd, status));
+		return (builtin_exit(cmd, shell->last_status));
 	return (1);
 }
 
-void	exec_child(t_cmd *cmd, char **envp)
+void	exec_child(t_cmd *cmd, t_shell *shell)
 {
 	char	*path;
 
-	path = get_path(cmd->argv[0]);
+	path = get_path(cmd->argv[0], shell);
 	if (!path)
 		exit(error_msg(127, cmd->argv[0], NULL, "command not found"));
-	execve(path, cmd->argv, envp);
+	execve(path, cmd->argv, shell->env);
 	perror(path);
 	free(path);
 	if (errno == ENOENT)
@@ -58,7 +58,7 @@ void	exec_child(t_cmd *cmd, char **envp)
 	exit(126);
 }
 
-static int	execute_external(t_cmd *cmd, char **envp)
+static int	execute_external(t_cmd *cmd, t_shell *shell)
 {
 	pid_t	pid;
 	int		cmd_status;
@@ -71,7 +71,7 @@ static int	execute_external(t_cmd *cmd, char **envp)
 		/* Plan: apply single-command redirections in child before execve. */
 		if (apply_redirections(cmd))
 			exit(1);
-		exec_child(cmd, envp);
+		exec_child(cmd, shell);
 	}
 	waitpid(pid, &cmd_status, 0);
 	if (WIFEXITED(cmd_status))
@@ -81,7 +81,7 @@ static int	execute_external(t_cmd *cmd, char **envp)
 	return (1);
 }
 
-static int	execute_builtin_with_redir(t_cmd *cmd, int status, char **envp)
+static int	execute_builtin_with_redir(t_cmd *cmd, t_shell *shell)
 {
 	int	saved_in;
 	int	saved_out;
@@ -95,7 +95,7 @@ static int	execute_builtin_with_redir(t_cmd *cmd, int status, char **envp)
 	if (apply_redirections(cmd))
 		ret = 1;
 	else
-		ret = execute_builtin(cmd, status, envp);
+		ret = execute_builtin(cmd, shell);
 	dup2(saved_in, STDIN_FILENO);
 	dup2(saved_out, STDOUT_FILENO);
 	close(saved_in);
@@ -103,13 +103,13 @@ static int	execute_builtin_with_redir(t_cmd *cmd, int status, char **envp)
 	return (ret);
 }
 
-int	execute(t_cmd *cmd, char **envp, int status)
+int	execute(t_cmd *cmd, t_shell *shell)
 {
 	if (!cmd || !cmd->argv || !cmd->argv[0])
-		return (status);
+		return (shell->last_status);
 	if (cmd->next)
-		return (execute_pipeline(cmd, envp, status));
+		return (execute_pipeline(cmd, shell));
 	if (is_builtin(cmd->argv[0]))
-		return (execute_builtin_with_redir(cmd, status, envp));
-	return (execute_external(cmd, envp));
+		return (execute_builtin_with_redir(cmd, shell));
+	return (execute_external(cmd, shell));
 }

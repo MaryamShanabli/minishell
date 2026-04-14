@@ -114,7 +114,7 @@ static size_t	parse_name(const char *s, char *name, int braced)
 	return (i);
 }
 
-static int	handle_dollar(t_expand *exp, int last_status)
+static int	handle_dollar(t_expand *exp, t_shell *shell)
 {
 	char	name[256];
 	char	nbr[12];
@@ -125,7 +125,7 @@ static int	handle_dollar(t_expand *exp, int last_status)
 		return (append_char(exp, '$'));
 	if (exp->in[exp->in_pos + 1] == '?')
 	{
-		itoa_simple(last_status, nbr);
+		itoa_simple(shell->last_status, nbr);
 		exp->in_pos += 2;
 		return (append_str(exp, nbr));
 	}
@@ -135,18 +135,18 @@ static int	handle_dollar(t_expand *exp, int last_status)
 		if (consumed == 0)
 			return (append_char(exp, exp->in[(exp->in_pos)++]));
 		exp->in_pos += consumed + 2;
-		val = getenv(name);
+		val = env_get(shell->env, name);
 		return (append_str(exp, val));
 	}
 	consumed = parse_name(exp->in + exp->in_pos + 1, name, 0);
 	if (consumed == 0)
 		return (append_char(exp, exp->in[(exp->in_pos)++]));
 	exp->in_pos += consumed + 1;
-	val = getenv(name);
+	val = env_get(shell->env, name);
 	return (append_str(exp, val));
 }
 
-static char *expand_one(const char *str, int last_status)
+static char *expand_one(const char *str, t_shell *shell)
 {
 	t_expand	exp;
 	int		in_single;
@@ -178,7 +178,7 @@ static char *expand_one(const char *str, int last_status)
 		}
 		if (exp.in[exp.in_pos] == '$' && !in_single)
 		{
-			if (!handle_dollar(&exp, last_status))
+			if (!handle_dollar(&exp, shell))
 			{
 				free(exp.out_buf);
 				return (NULL);
@@ -200,13 +200,13 @@ static char *expand_one(const char *str, int last_status)
 	return (exp.out_buf);
 }
 
-void expand_variables(t_token *tokens, int last_status)
+void	expand_variables(t_token *tokens, t_shell *shell)
 {
 	while (tokens)
 	{
 		if (tokens->type == T_COMMAND || tokens->type == T_ARG)
 		{
-			char *new_val = expand_one(tokens->value, last_status);
+			char *new_val = expand_one(tokens->value, shell);
 			if (!new_val)
 				return;
 			free(tokens->value);

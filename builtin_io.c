@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:11 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/12 20:17:06 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/14 16:38:13 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,9 +49,8 @@ int	builtin_pwd(t_cmd *cmd)
 	return (0);
 }
 
-int	builtin_env(t_cmd *cmd)
+int	builtin_env(t_cmd *cmd, t_shell *shell)
 {
-	extern char	**environ;
 	int			i;
 	int			has_equal;
 	int			j;
@@ -59,13 +58,13 @@ int	builtin_env(t_cmd *cmd)
 	if (cmd->argv[1])
 		return (error_msg(1, "env", NULL, "no options or arguments supported"));
 	i = 0;
-	while (environ[i])
+	while (shell->env && shell->env[i])
 	{
 		has_equal = 0;
 		j = 0;
-		while (environ[i][j])
+		while (shell->env[i][j])
 		{
-			if (environ[i][j] == '=')
+			if (shell->env[i][j] == '=')
 			{
 				has_equal = 1;
 				break ;
@@ -74,7 +73,7 @@ int	builtin_env(t_cmd *cmd)
 		}
 		if (has_equal)
 		{
-			write(1, environ[i], ft_strlen(environ[i]));
+			write(1, shell->env[i], ft_strlen(shell->env[i]));
 			write(1, "\n", 1);
 		}
 		i++;

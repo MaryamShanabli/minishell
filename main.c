@@ -6,13 +6,11 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/22 16:55:22 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/11 13:16:24 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/14 16:49:26 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-
-volatile sig_atomic_t	g_signal = 0;
 
 static void	handle_eof(int status)
 {
@@ -94,6 +92,7 @@ static void	init_cmd(t_cmd *cmd)
 	cmd->argv = NULL;
 	cmd->redirs = NULL;
 	cmd->is_builtin = 0;
+
 	cmd->pid = 0;
 	cmd->next = NULL;
 }
@@ -175,7 +174,7 @@ static int	parse_redirection(t_cmd *cmd, t_token **it)
 	return (1);
 }
 
-t_cmd	process_input(char *input, int last_status)
+t_cmd	process_input(char *input, t_shell *shell)
 {
 	t_cmd	cmd;
 	t_token	*tokens;
@@ -190,7 +189,7 @@ t_cmd	process_input(char *input, int last_status)
 	tokens = lexer(input);
 	if (!tokens)
 		return (cmd);
-	expand_variables(tokens, last_status);
+	expand_variables(tokens, shell);
 	current = &cmd;
 	current_argv = NULL;
 	current_argc = 0;
@@ -235,34 +234,38 @@ int	main(int ac, char **av, char **envp)
 {
 	char	*input;
 	t_cmd	cmd;
-	int		status;
+	t_shell	shell;
 
-	status = 0;
+	shell.env = env_dup(envp);
+	if (!shell.env)
+		return (1);
+	shell.last_status = 0;
 	if (ac > 1)
 	{
 		input = av[1];
-		cmd = process_input(input, status);
+		cmd = process_input(input, &shell);
 		if (cmd.pid == -2)
-			status = 2;
+			shell.last_status = 2;
 		else
-			status = execute(&cmd, envp, status);
+			shell.last_status = execute(&cmd, &shell);
 		free_cmd_list(&cmd);
-		return (status);
+		dfree(shell.env);
+		return (shell.last_status);
 	}
 	while (1)
 	{
 		input = readline("minishell$ ");
 		if (!input)
 		{
-			handle_eof(status);
+			handle_eof(shell.last_status);
 			break ;
 		}
 		add_history(input);
-		cmd = process_input(input, status);
+		cmd = process_input(input, &shell);
 		if (cmd.pid == -2)
-			status = 2;
+			shell.last_status = 2;
 		else
-			status = execute(&cmd, envp, status);
+			shell.last_status = execute(&cmd, &shell);
 		if (cmd.argv && !cmd.next && !ft_strcmp(cmd.argv[0], "exit"))
 		{
 			free_cmd_list(&cmd);
@@ -272,7 +275,8 @@ int	main(int ac, char **av, char **envp)
 		free_cmd_list(&cmd);
 		free(input);
 	}
-	exit(status);
+	dfree(shell.env);
+	exit(shell.last_status);
 }
 
 // 1. Mandatory builtins not implemented yet
