@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/22 16:55:22 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/14 18:29:32 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/04/14 19:00:53 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ volatile sig_atomic_t	g_signal = 0;
 static void	signal_handler(int signum)
 {
 	g_signal = signum;
+	if (signum == SIGINT)
+		write(1, "\n", 1);
 }
 
 static void	setup_signals(void)
@@ -25,10 +27,12 @@ static void	setup_signals(void)
 	struct sigaction	sa;
 
 	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
+	sa.sa_flags = 0;
 	sa.sa_handler = signal_handler;
 	sigaction(SIGINT, &sa, NULL);
+	sa.sa_handler = SIG_IGN;
 	sigaction(SIGQUIT, &sa, NULL);
+	rl_catch_signals = 0;
 }
 
 static void	handle_eof(int status)
@@ -315,16 +319,24 @@ int	main(int ac, char **av, char **envp)
 		if (g_signal == SIGINT)
 		{
 			g_signal = 0;
-			write(1, "\n", 1);
 			continue ;
 		}
-		else if (g_signal == SIGQUIT)
-			g_signal = 0;
 		input = readline("minishell$ ");
 		if (!input)
 		{
+			if (g_signal == SIGINT)
+			{
+				g_signal = 0;
+				continue ;
+			}
 			handle_eof(shell.last_status);
 			break ;
+		}
+		if (g_signal == SIGINT)
+		{
+			g_signal = 0;
+			free(input);
+			continue ;
 		}
 		if (!*input)
 		{

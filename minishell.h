@@ -13,9 +13,6 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-// Subject requirement: at most one global variable for signals.
-// g_signal stores the last received signal number (e.g., SIGINT=2, SIGTERM=15).
-
 extern volatile sig_atomic_t	g_signal;
 
 typedef enum e_token_type
