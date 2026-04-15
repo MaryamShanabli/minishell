@@ -6,7 +6,7 @@
 /*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:11 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/15 12:35:40 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/04/15 12:49:37 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,32 @@ int	builtin_echo(t_cmd *cmd)
 {
 	int	i;
 	int	newline;
+	int	j;
 
 	i = 1;
 	newline = 1;
-	if (cmd->argv[1] && !ft_strcmp(cmd->argv[1], "-n"))
+	// ✅ FIXED: Skip ALL arguments that are ONLY "-n" characters (combined flags)
+	// Examples: "-n", "-nn", "-nnn", "-nnnnn" are all treated as suppress-newline flags
+	while (cmd->argv[i])
 	{
-		newline = 0;
-		i++;
+		j = 0;
+		// Check if argv[i] starts with '-'
+		if (cmd->argv[i][j] != '-')
+			break;
+		j++;
+		// Check if rest are all 'n' characters
+		if (cmd->argv[i][j] == '\0')  // Just "-" alone
+			break;
+		while (cmd->argv[i][j] == 'n')
+			j++;
+		// If we consumed all characters and they were 'n's, it's a flag
+		if (cmd->argv[i][j] == '\0')
+		{
+			newline = 0;
+			i++;
+		}
+		else
+			break;
 	}
 	while (cmd->argv[i])
 	{
