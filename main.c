@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/22 16:55:22 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/14 19:00:53 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/04/15 12:35:37 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,6 @@ static void	setup_signals(void)
 	sigaction(SIGINT, &sa, NULL);
 	sa.sa_handler = SIG_IGN;
 	sigaction(SIGQUIT, &sa, NULL);
-	rl_catch_signals = 0;
 }
 
 static void	handle_eof(int status)
@@ -156,22 +155,29 @@ static int	append_arg(char ***argv, int *argc, const char *value)
 	char	**new_argv;
 	int		i;
 
-	new_argv = malloc(sizeof(char *) * (*argc + 2));
+	// ✅ CHANGED: Use calloc instead of malloc to zero-initialize memory
+	// ✅ CHANGED: Allocate +3 instead of +2 to ensure argv[2] is always accessible
+	// This prevents undefined behavior when checking argv[2] in builtin functions
+	new_argv = calloc(*argc + 3, sizeof(char *));
 	if (!new_argv)
 		return (0);
-	i = 0;
-	while (i < *argc)
+	// ✅ ADDED: Check if old argv exists before trying to copy and free
+	if (*argv)
 	{
-		new_argv[i] = (*argv)[i];
-		i++;
+		i = 0;
+		while (i < *argc)
+		{
+			new_argv[i] = (*argv)[i];
+			i++;
+		}
+		free(*argv);
 	}
-	free(*argv);
 	*argv = new_argv;
 	(*argv)[*argc] = ft_strdup(value);
 	if (!(*argv)[*argc])
 		return (dfree(*argv), *argv = NULL, 0);
 	(*argc)++;
-	(*argv)[*argc] = NULL;
+	(*argv)[*argc] = NULL;  // ✅ NULL-terminate the array
 	return (1);
 }
 

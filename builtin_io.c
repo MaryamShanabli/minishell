@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtin_io.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:11 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/14 16:38:13 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/15 12:35:40 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,12 +35,19 @@ int	builtin_echo(t_cmd *cmd)
 		write(1, "\n", 1);
 	return (0);
 }
-
 int	builtin_pwd(t_cmd *cmd)
 {
 	char	cwd[1024];
+	int		argc;
 
-	if (cmd->argv[1])
+	// ✅ ADDED: Counter to safely count number of arguments
+	argc = 0;
+	// ✅ ADDED: Loop through argv to count all arguments safely
+	while (cmd->argv && cmd->argv[argc])
+		argc++;
+	// ✅ CHANGED: Check argc > 1 instead of argv[1]
+	// pwd command accepts NO arguments, only the command itself (1 arg)
+	if (argc > 1)
 		return (error_msg(1, "pwd", NULL, "too many arguments"));
 	if (!getcwd(cwd, sizeof(cwd)))
 		return (perror("pwd"), 1);
