@@ -1,14 +1,14 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   exec_redir.c                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/07 12:20:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/16 14:57:28 by oalfoqha         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+
+
+
+
+
+
+
+
+
+
+
 
 #include "minishell.h"
 #include <fcntl.h>
@@ -17,22 +17,65 @@ static int	do_heredoc(const char *delim)
 {
 	int		fd[2];
 	char	*line;
+	pid_t	pid;
+	int		status;
+	struct sigaction	sa;
+	struct sigaction	old_int;
+	struct sigaction	old_quit;
 
 	if (pipe(fd) == -1)
 		return (perror("pipe"), 1);
-	while (1)
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sa.sa_handler = SIG_IGN;
+	sigaction(SIGINT, &sa, &old_int);
+	sigaction(SIGQUIT, &sa, &old_quit);
+	pid = fork();
+	if (pid == -1)
+		return (sigaction(SIGINT, &old_int, NULL),
+			sigaction(SIGQUIT, &old_quit, NULL),
+			close(fd[0]), close(fd[1]), perror("fork"), 1);
+	if (pid == 0)
 	{
-		line = readline("> ");
-		if (!line || !ft_strcmp(line, delim))
+		signal(SIGINT, SIG_DFL);
+		signal(SIGQUIT, SIG_IGN);
+		close(fd[0]);
+		while (1)
 		{
+			line = readline("> ");
+			if (!line)
+				break ;
+			if (!ft_strcmp(line, delim))
+			{
+				free(line);
+				break ;
+			}
+			write(fd[1], line, ft_strlen(line));
+			write(fd[1], "\n", 1);
 			free(line);
-			break ;
 		}
-		write(fd[1], line, ft_strlen(line));
-		write(fd[1], "\n", 1);
-		free(line);
+		close(fd[1]);
+		_exit(0);
 	}
 	close(fd[1]);
+	waitpid(pid, &status, 0);
+	sigaction(SIGINT, &old_int, NULL);
+	sigaction(SIGQUIT, &old_quit, NULL);
+	if (WIFSIGNALED(status) && WTERMSIG(status) == SIGINT)
+	{
+		g_signal = SIGINT;
+		write(1, "\n", 1);
+		rl_cleanup_after_signal();
+		rl_reset_after_signal();
+		return (close(fd[0]), 130);
+	}
+	if (WIFEXITED(status) && WEXITSTATUS(status) == 130)
+	{
+		g_signal = SIGINT;
+		rl_cleanup_after_signal();
+		rl_reset_after_signal();
+		return (close(fd[0]), 130);
+	}
 	if (dup2(fd[0], STDIN_FILENO) == -1)
 		return (close(fd[0]), perror("dup2"), 1);
 	close(fd[0]);
@@ -66,6 +109,7 @@ int	apply_redirections(t_cmd *cmd)
 {
 	t_redir	*redir;
 	int		base_stdin;
+	int		ret;
 
 	if (!cmd)
 		return (1);
@@ -80,8 +124,9 @@ int	apply_redirections(t_cmd *cmd)
 			if (dup2(base_stdin, STDIN_FILENO) == -1)
 				return (close(base_stdin), perror("dup2"), 1);
 		}
-		if (do_one_redir(redir))
-			return (close(base_stdin), 1);
+		ret = do_one_redir(redir);
+		if (ret)
+			return (close(base_stdin), ret);
 		redir = redir->next;
 	}
 	close(base_stdin);

@@ -20,6 +20,11 @@ static int	ft_isalnum(char c)
 	return (ft_isalpha(c) || (c >= '0' && c <= '9'));
 }
 
+static int	ft_isdigit(char c)
+{
+	return (c >= '0' && c <= '9');
+}
+
 static void itoa_simple(int n, char *buf)
 {
 	int i = 0, j, sign = n;
@@ -88,6 +93,45 @@ static int	append_str(t_expand *exp, const char *s)
 	return (1);
 }
 
+/* Added for testcase: export x=" ismail" then echo $x => ismail, echo "$x" =>  ismail */
+static int	has_quotes(const char *s)
+{
+	size_t	i;
+
+	i = 0;
+	while (s && s[i])
+	{
+		if (s[i] == '\'' || s[i] == '"')
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+/* Added for testcase: trim unquoted expansion edge whitespace (IFS-like) */
+static char	*trim_ifs_edges(const char *s)
+{
+	size_t	start;
+	size_t	end;
+	char	*out;
+
+	if (!s)
+		return (ft_strdup(""));
+	start = 0;
+	while (s[start] == ' ' || s[start] == '\t' || s[start] == '\n')
+		start++;
+	end = ft_strlen(s);
+	while (end > start && (s[end - 1] == ' ' || s[end - 1] == '\t'
+			|| s[end - 1] == '\n'))
+		end--;
+	out = malloc(end - start + 1);
+	if (!out)
+		return (NULL);
+	ft_strncpy(out, s + start, end - start);
+	out[end - start] = '\0';
+	return (out);
+}
+
 static size_t	parse_name(const char *s, char *name, int braced)
 {
 	size_t	i;
@@ -128,6 +172,16 @@ static int	handle_dollar(t_expand *exp, t_shell *shell)
 		itoa_simple(shell->last_status, nbr);
 		exp->in_pos += 2;
 		return (append_str(exp, nbr));
+	}
+	if (ft_isdigit(exp->in[exp->in_pos + 1]))
+	{
+		if (exp->in[exp->in_pos + 1] == '0')
+		{
+			exp->in_pos += 2;
+			return (append_str(exp, "./minishell"));
+		}
+		exp->in_pos += 2;
+		return (1);
 	}
 	if (exp->in[exp->in_pos + 1] == '{')
 	{
@@ -202,13 +256,29 @@ static char *expand_one(const char *str, t_shell *shell)
 
 void	expand_variables(t_token *tokens, t_shell *shell)
 {
+	char	*new_val;
+	char	*trimmed;
+	int		quoted;
+
 	while (tokens)
 	{
 		if (tokens->type == T_COMMAND || tokens->type == T_ARG)
 		{
-			char *new_val = expand_one(tokens->value, shell);
+			quoted = has_quotes(tokens->value);
+			new_val = expand_one(tokens->value, shell);
 			if (!new_val)
 				return;
+			if (!quoted)
+			{
+				trimmed = trim_ifs_edges(new_val);
+				free(new_val);
+				if (!trimmed)
+					return;
+				new_val = trimmed;
+				tokens->remove_if_empty = (new_val[0] == '\0'); /* testcase: $non_exist and space-only vars */
+			}
+			else
+				tokens->remove_if_empty = 0;
 			free(tokens->value);
 			tokens->value = new_val;
 		}

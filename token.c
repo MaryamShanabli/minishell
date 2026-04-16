@@ -29,6 +29,7 @@ t_token *new_token(char *value, t_token_type type)
 		return NULL;
 	tok->value = ft_strdup(value);
 	tok->type = type;
+	tok->remove_if_empty = 0; /* testcase default: only expander can mark this */
 	tok->next = NULL;
 	return tok;
 }

@@ -17,54 +17,55 @@ extern volatile sig_atomic_t	g_signal;
 
 typedef enum e_token_type
 {
-	T_COMMAND,		// command name (first word in command line)
-	T_ARG,			// argument or option
-	T_FILENAME,		// filename for redirection target
-	T_PIPE,			// | (pipe operator)
-	T_REDIR_IN,		// < (input redirection)
-	T_REDIR_OUT,	// > (output redirection)
-	T_HEREDOC,		// << (heredoc)
-	T_APPEND		// >> (append output)
+	T_COMMAND,
+	T_ARG,
+	T_FILENAME,
+	T_PIPE,
+	T_REDIR_IN,
+	T_REDIR_OUT,
+	T_HEREDOC,
+	T_APPEND
 }	t_token_type;
 
 typedef enum e_redir_type
 {
-    R_IN,           // input redirection: <
-    R_OUT,          // output redirection: >
-    R_HEREDOC,      // heredoc: <<
-    R_APPEND        // append output redirection: >>
+    R_IN,
+    R_OUT,
+    R_HEREDOC,
+    R_APPEND
 }	t_redir_type;
 
 typedef struct s_token
 {
-    char			*value;      // token text, e.g. "echo", "file.txt", "|"
-    t_token_type	type;       // token category from lexer
-    struct s_token	*next;      // next token in linked list
+    char			*value;
+    t_token_type	type;
+    int			remove_if_empty; /* testcase flag: drop unquoted empty-expanded args */
+    struct s_token	*next;
 }	t_token;
 
 typedef struct s_redir
 {
-    t_redir_type		type;        // which redirection kind this node is
-    char				*target;     // filename or heredoc delimiter
-    int					heredoc_fd;  // read-end fd for heredoc content (-1 if unused)
-    struct s_redir		*next;       // next redirection for same command
+    t_redir_type		type;
+    char				*target;
+    int					heredoc_fd;
+    struct s_redir		*next;
 }	t_redir;
 
 typedef struct s_cmd
 {
-    char			**argv;        // NULL-terminated args array for execve/builtin
-    t_redir			*redirs;       // all redirections belonging to this command
-    int			is_builtin;    // optional cached flag (not needed right now)
-    pid_t			pid;           // child pid when forked (useful for wait)
-    struct s_cmd	*next;         // next command in pipeline (after |)
+    char			**argv;
+    t_redir			*redirs;
+    int			is_builtin;
+    pid_t			pid;
+    struct s_cmd	*next;
 }	t_cmd;
 
 typedef struct s_exec
 {
-    int		in_fd;              // current input fd for command execution
-    int		out_fd;             // current output fd for command execution
-    int		pipe_fd[2];         // pipe fds for current pipeline step
-    int		prev_pipe_read;     // read-end from previous command pipe
+    int		in_fd;
+    int		out_fd;
+    int		pipe_fd[2];
+    int		prev_pipe_read;
 }	t_exec;
 
 typedef struct s_shell

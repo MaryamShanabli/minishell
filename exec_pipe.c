@@ -1,14 +1,14 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   exec_pipe.c                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/27 20:08:25 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/16 15:26:27 by oalfoqha         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+
+
+
+
+
+
+
+
+
+
+
 
 #include "minishell.h"
 
@@ -44,9 +44,9 @@ static void	exec_pipe(t_cmd *cmd, t_exec *exec, t_shell *shell)
 			dup2(exec->pipe_fd[1], STDOUT_FILENO);
 		close_fd(&exec->pipe_fd[0]);
 		close_fd(&exec->pipe_fd[1]);
-		/* Plan: apply command redirections after pipe wiring so redir can override. */
+
 		if (apply_redirections(cmd))
-			exit(1);
+			exit(130);
 		if (is_builtin(cmd->argv[0]))
 			exit(execute_builtin(cmd, shell));
 		else

@@ -1,14 +1,14 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   builtin_exit.c                                     :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/27 20:04:02 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/16 15:07:51 by oalfoqha         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+
+
+
+
+
+
+
+
+
+
+
 
 #include "minishell.h"
 #include <limits.h>
@@ -81,23 +81,23 @@ int	builtin_exit(t_cmd *cmd, int status)
 	long long		code;
 	int				argc;
 
-	// ✅ ADDED: Counter to safely count number of arguments
+
 	argc = 0;
-	// ✅ ADDED: Loop through argv to count all arguments safely
+
 	while (cmd->argv && cmd->argv[argc])
 		argc++;
 	if (isatty(STDIN_FILENO) && isatty(STDOUT_FILENO))
 		write(2, "exit\n", 5);
-	// ✅ CHANGED: Check argc == 1 instead of !cmd->argv[1]
-	// If only 1 arg (command name "exit"), use last shell status
+
+
 	if (argc == 1)
 		return ((unsigned char)status);
-	// Parse the exit code argument (argv[1])
+
 	if (!parse_exit_code(cmd->argv[1], &code))
 		return (error_msg(2, "exit", cmd->argv[1],
 				"numeric argument required"));
-	// ✅ CHANGED: Check argc > 2 instead of cmd->argv[2]
-	// exit accepts max 2 args: "exit" (command) + exit_code
+
+
 	if (argc > 2)
 		return (error_msg(1, "exit", NULL, "too many arguments"));
 	return ((unsigned char)code);

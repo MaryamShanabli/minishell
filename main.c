@@ -1,30 +1,37 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/22 16:55:22 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/16 16:00:55 by oalfoqha         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+
+
+
+
+
+
+
+
+
+
+
 
 #include "minishell.h"
 
-/* Global signal variable - stores the last received signal number */
+
 volatile sig_atomic_t	g_signal = 0;
 
 static void	signal_handler(int signum)
 {
 	g_signal = signum;
 	if (signum == SIGINT)
+	{
 		write(1, "\n", 1);
+		rl_on_new_line();
+		rl_replace_line("", 0);
+		rl_redisplay();
+	}
 }
 
 static void	setup_signals(void)
 {
 	struct sigaction	sa;
+
+	rl_catch_signals = 0;
 
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
@@ -204,7 +211,7 @@ static int	parse_redirection(t_cmd *cmd, t_token **it)
 	target = (*it)->next;
 	if (!target || target->type == T_PIPE || is_redir_token(target->type))
 		return (syntax_token_error(target ? target->value : NULL));
-	/* Plan point 2/3: parse and store command redirections in order. */
+
 	if (!add_redir(cmd, map_redir_type((*it)->type), target->value))
 		return (0);
 	*it = target;
@@ -224,12 +231,12 @@ static void	unlink_empty_commands(t_cmd *first)
 		next = curr->next;
 		if (!next->argv || !next->argv[0])
 		{
-			/* Found empty command, move its redirs to prev and unlink */
+
 			if (next->redirs && !curr->redirs)
 				curr->redirs = next->redirs;
 			else if (next->redirs)
 			{
-				/* Move redirs to next->next if it exists */
+
 				if (next->next && !next->next->redirs)
 					next->next->redirs = next->redirs;
 			}
@@ -266,6 +273,11 @@ t_cmd	process_input(char *input, t_shell *shell)
 	{
 		if (it->type == T_COMMAND || it->type == T_ARG)
 		{
+			if (it->remove_if_empty && (!it->value || !it->value[0])) /* testcase: skip only unquoted empty expansions */
+			{
+				it = it->next;
+				continue ;
+			}
 			if (!append_arg(&current_argv, &current_argc, it->value))
 				return (free_tokens(tokens), free_cmd_list(&cmd), cmd);
 		}

@@ -1,14 +1,14 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   exec_path.c                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/27 20:04:42 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/14 16:38:13 by mshanabl         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+
+
+
+
+
+
+
+
+
+
+
 
 #include "minishell.h"
 
@@ -37,11 +37,16 @@ char	*get_path(char *cmd, t_shell *shell)
 	char	*env;
 	char	**paths;
 	char	*full;
+	char	*path_src;
+	const char	*default_path;
 
+	default_path = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
 	env = env_get(shell->env, "PATH");
-	if (!env)
-		return (NULL);
-	paths = ft_split(env, ':');
+	if (!env || !*env)
+		path_src = (char *)default_path;
+	else
+		path_src = env;
+	paths = ft_split(path_src, ':');
 	if (!paths)
 		return (NULL);
 	full = find_cmd_path(paths, cmd);

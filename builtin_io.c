@@ -1,14 +1,14 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   builtin_io.c                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/03/27 20:04:11 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/15 12:49:37 by oalfoqha         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
+
+
+
+
+
+
+
+
+
+
+
 
 #include "minishell.h"
 
@@ -20,21 +20,21 @@ int	builtin_echo(t_cmd *cmd)
 
 	i = 1;
 	newline = 1;
-	// ✅ FIXED: Skip ALL arguments that are ONLY "-n" characters (combined flags)
-	// Examples: "-n", "-nn", "-nnn", "-nnnnn" are all treated as suppress-newline flags
+
+
 	while (cmd->argv[i])
 	{
 		j = 0;
-		// Check if argv[i] starts with '-'
+
 		if (cmd->argv[i][j] != '-')
 			break;
 		j++;
-		// Check if rest are all 'n' characters
-		if (cmd->argv[i][j] == '\0')  // Just "-" alone
+
+		if (cmd->argv[i][j] == '\0')
 			break;
 		while (cmd->argv[i][j] == 'n')
 			j++;
-		// If we consumed all characters and they were 'n's, it's a flag
+
 		if (cmd->argv[i][j] == '\0')
 		{
 			newline = 0;
@@ -59,13 +59,13 @@ int	builtin_pwd(t_cmd *cmd)
 	char	cwd[1024];
 	int		argc;
 
-	// ✅ ADDED: Counter to safely count number of arguments
+
 	argc = 0;
-	// ✅ ADDED: Loop through argv to count all arguments safely
+
 	while (cmd->argv && cmd->argv[argc])
 		argc++;
-	// ✅ CHANGED: Check argc > 1 instead of argv[1]
-	// pwd command accepts NO arguments, only the command itself (1 arg)
+
+
 	if (argc > 1)
 		return (error_msg(1, "pwd", NULL, "too many arguments"));
 	if (!getcwd(cwd, sizeof(cwd)))
