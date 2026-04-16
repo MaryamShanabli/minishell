@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:05:43 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/14 18:58:17 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/04/16 15:50:56 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,21 @@ char	*ft_strjoin(const char *s1, const char *s2)
 	}
 	out[i] = '\0';
 	return (out);
+}
+
+char	*ft_strchr(const char *s, int c)
+{
+	if (!s)
+		return (NULL);
+	while (*s)
+	{
+		if (*s == (char)c)
+			return ((char *)s);
+		s++;
+	}
+	if ((char)c == '\0')
+		return ((char *)s);
+	return (NULL);
 }
 
 int	ft_strcmp(const char *s1, const char *s2)

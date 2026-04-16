@@ -6,11 +6,17 @@
 /*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:39 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/14 18:07:30 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/04/16 15:25:52 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+static void	set_child_signals(void)
+{
+	signal(SIGINT, SIG_DFL);
+	signal(SIGQUIT, SIG_DFL);
+}
 
 int	is_builtin(char *name)
 {
@@ -68,6 +74,7 @@ static int	execute_external(t_cmd *cmd, t_shell *shell)
 		return (perror("fork"), 1);
 	if (pid == 0)
 	{
+		set_child_signals();
 		/* Plan: apply single-command redirections in child before execve. */
 		if (apply_redirections(cmd))
 			exit(1);
@@ -77,7 +84,13 @@ static int	execute_external(t_cmd *cmd, t_shell *shell)
 	if (WIFEXITED(cmd_status))
 		return (WEXITSTATUS(cmd_status));
 	else if (WIFSIGNALED(cmd_status))
+	{
+		if (WTERMSIG(cmd_status) == SIGQUIT)
+			write(2, "Quit: 3\n", 8);
+		else if (WTERMSIG(cmd_status) == SIGINT)
+			write(2, "\n", 1);
 		return (128 + WTERMSIG(cmd_status));
+	}
 	return (1);
 }
 

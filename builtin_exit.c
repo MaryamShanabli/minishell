@@ -6,7 +6,7 @@
 /*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:02 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/15 12:35:36 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/04/16 15:07:51 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ int	builtin_exit(t_cmd *cmd, int status)
 	// ✅ ADDED: Loop through argv to count all arguments safely
 	while (cmd->argv && cmd->argv[argc])
 		argc++;
-	if (isatty(STDIN_FILENO))
+	if (isatty(STDIN_FILENO) && isatty(STDOUT_FILENO))
 		write(2, "exit\n", 5);
 	// ✅ CHANGED: Check argc == 1 instead of !cmd->argv[1]
 	// If only 1 arg (command name "exit"), use last shell status

@@ -6,7 +6,7 @@
 /*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/27 20:04:19 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/15 12:35:39 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/04/16 15:50:56 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,7 +144,7 @@ int	builtin_export(t_cmd *cmd, t_shell *shell)
 	while (cmd->argv[i])
 	{
 		arg = cmd->argv[i];
-		eq_pos = strchr(arg, '=');
+		eq_pos = ft_strchr(arg, '=');
 		if (eq_pos)
 		{
 			*eq_pos = '\0';

@@ -6,7 +6,7 @@
 /*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/02/22 16:55:22 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/15 12:35:37 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/04/16 16:00:55 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,13 +155,15 @@ static int	append_arg(char ***argv, int *argc, const char *value)
 	char	**new_argv;
 	int		i;
 
-	// ✅ CHANGED: Use calloc instead of malloc to zero-initialize memory
-	// ✅ CHANGED: Allocate +3 instead of +2 to ensure argv[2] is always accessible
-	// This prevents undefined behavior when checking argv[2] in builtin functions
-	new_argv = calloc(*argc + 3, sizeof(char *));
+	new_argv = malloc(sizeof(char *) * (*argc + 3));
 	if (!new_argv)
 		return (0);
-	// ✅ ADDED: Check if old argv exists before trying to copy and free
+	i = 0;
+	while (i < *argc + 3)
+	{
+		new_argv[i] = NULL;
+		i++;
+	}
 	if (*argv)
 	{
 		i = 0;
@@ -177,7 +179,7 @@ static int	append_arg(char ***argv, int *argc, const char *value)
 	if (!(*argv)[*argc])
 		return (dfree(*argv), *argv = NULL, 0);
 	(*argc)++;
-	(*argv)[*argc] = NULL;  // ✅ NULL-terminate the array
+	(*argv)[*argc] = NULL;
 	return (1);
 }
 

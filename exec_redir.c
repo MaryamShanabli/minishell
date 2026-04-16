@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   exec_redir.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: oalfoqha <oalfoqha@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/07 12:20:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/07 05:22:31 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/16 14:57:28 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,15 +65,25 @@ static int	do_one_redir(t_redir *redir)
 int	apply_redirections(t_cmd *cmd)
 {
 	t_redir	*redir;
+	int		base_stdin;
 
 	if (!cmd)
 		return (1);
+	base_stdin = dup(STDIN_FILENO);
+	if (base_stdin == -1)
+		return (perror("dup"), 1);
 	redir = cmd->redirs;
 	while (redir)
 	{
+		if (redir->type == R_HEREDOC)
+		{
+			if (dup2(base_stdin, STDIN_FILENO) == -1)
+				return (close(base_stdin), perror("dup2"), 1);
+		}
 		if (do_one_redir(redir))
-			return (1);
+			return (close(base_stdin), 1);
 		redir = redir->next;
 	}
+	close(base_stdin);
 	return (0);
 }
