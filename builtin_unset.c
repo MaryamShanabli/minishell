@@ -1,28 +1,38 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   error_msg.c                                        :+:      :+:    :+:   */
+/*   builtin_unset.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/19 15:12:45 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 17:04:53 by mshanabl         ###   ########.fr       */
+/*   Created: 2026/04/19 16:00:00 by mshanabl          #+#    #+#             */
+/*   Updated: 2026/04/19 16:08:52 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int	error_msg(int status, const char *cmd, const char *arg, const char *msg)
+int	builtin_unset(t_cmd *cmd, t_shell *shell)
 {
-	write(2, "minishell: ", 11);
-	write(2, cmd, ft_strlen(cmd));
-	write(2, ": ", 2);
-	if (arg)
+	int		i;
+	int		status;
+	char	*arg;
+
+	if (!cmd || !cmd->argv || !cmd->argv[1])
+		return (0);
+	status = 0;
+	i = 1;
+	while (cmd->argv[i])
 	{
-		write(2, arg, ft_strlen(arg));
-		write(2, ": ", 2);
+		arg = cmd->argv[i];
+		if (!is_valid(arg))
+		{
+			error_msg(1, "unset", arg, "not a valid identifier");
+			status = 1;
+		}
+		else
+			(void)env_unset(&shell->env, arg);
+		i++;
 	}
-	write(2, msg, ft_strlen(msg));
-	write(2, "\n", 1);
 	return (status);
 }

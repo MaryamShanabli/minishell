@@ -6,54 +6,39 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:25 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 15:12:26 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/19 16:08:52 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
-
-
-
-
-
-
-
-
-
-
-
 #include "minishell.h"
+
+static int	has_n(const char *arg)
+{
+	int	j;
+
+	if (!arg || arg[0] != '-')
+		return (0);
+	j = 1;
+	if (arg[j] == '\0')
+		return (0);
+	while (arg[j] == 'n')
+		j++;
+	if (arg[j] != '\0')
+		return (0);
+	return (1);
+}
 
 int	builtin_echo(t_cmd *cmd)
 {
 	int	i;
 	int	newline;
-	int	j;
 
 	i = 1;
 	newline = 1;
-
-
-	while (cmd->argv[i])
+	while (cmd->argv[i] && has_n(cmd->argv[i]))
 	{
-		j = 0;
-
-		if (cmd->argv[i][j] != '-')
-			break;
-		j++;
-
-		if (cmd->argv[i][j] == '\0')
-			break;
-		while (cmd->argv[i][j] == 'n')
-			j++;
-
-		if (cmd->argv[i][j] == '\0')
-		{
-			newline = 0;
-			i++;
-		}
-		else
-			break;
+		newline = 0;
+		i++;
 	}
 	while (cmd->argv[i])
 	{
@@ -66,50 +51,59 @@ int	builtin_echo(t_cmd *cmd)
 		write(1, "\n", 1);
 	return (0);
 }
+
 int	builtin_pwd(t_cmd *cmd)
 {
 	char	cwd[1024];
 	int		argc;
-
+	int		err;
 
 	argc = 0;
-
 	while (cmd->argv && cmd->argv[argc])
 		argc++;
-
-
 	if (argc > 1)
-		return (error_msg(1, "pwd", NULL, "too many arguments"));
+	{
+		err = error_msg(1, "pwd", NULL, "too many arguments");
+		return (err);
+	}
 	if (!getcwd(cwd, sizeof(cwd)))
-		return (perror("pwd"), 1);
+	{
+		perror("pwd");
+		return (1);
+	}
 	write(1, cwd, ft_strlen(cwd));
 	write(1, "\n", 1);
 	return (0);
 }
 
+static int	has_equal(const char *entry)
+{
+	int	j;
+
+	j = 0;
+	while (entry[j])
+	{
+		if (entry[j] == '=')
+			return (1);
+		j++;
+	}
+	return (0);
+}
+
 int	builtin_env(t_cmd *cmd, t_shell *shell)
 {
-	int			i;
-	int			has_equal;
-	int			j;
+	int	i;
+	int	err;
 
 	if (cmd->argv[1])
-		return (error_msg(1, "env", NULL, "no options or arguments supported"));
+	{
+		err = error_msg(1, "env", NULL, "no options or arguments supported");
+		return (err);
+	}
 	i = 0;
 	while (shell->env && shell->env[i])
 	{
-		has_equal = 0;
-		j = 0;
-		while (shell->env[i][j])
-		{
-			if (shell->env[i][j] == '=')
-			{
-				has_equal = 1;
-				break ;
-			}
-			j++;
-		}
-		if (has_equal)
+		if (has_equal(shell->env[i]))
 		{
 			write(1, shell->env[i], ft_strlen(shell->env[i]));
 			write(1, "\n", 1);

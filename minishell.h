@@ -8,6 +8,7 @@
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
+#include <fcntl.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <sys/types.h>
@@ -74,6 +75,20 @@ typedef struct s_shell
 	int		last_status;
 }t_shell;
 
+typedef struct s_expbuf
+{
+    char	*buf;
+    size_t	used;
+    size_t	cap;
+}t_expbuf;
+
+typedef struct s_expand_state
+{
+    size_t	pos;
+    int		in_single;
+    int		in_double;
+}t_expand_state;
+
 char	**ft_split(char const *s, char c);
 char	*ft_strdup(const char *s);
 char	*ft_strjoin(const char *s1, const char *s2);
@@ -83,6 +98,7 @@ size_t	ft_strlen(const char *s);
 int		ft_strcmp(const char *s1, const char *s2);
 void	dfree(char **arr);
 int		is_valid(const char *s);
+int		key_match(const char *entry, const char *key);
 char	**env_dup(char **src);
 char	*env_get(char **env, const char *key);
 int		env_set(char ***env, const char *key, const char *value);
@@ -93,8 +109,11 @@ t_cmd	process_input(char *input, t_shell *shell);
 int		execute(t_cmd *cmd, t_shell *shell);
 int		execute_pipeline(t_cmd *cmd, t_shell *shell);
 int		apply_redirections(t_cmd *cmd);
+int		do_heredoc(const char *delim);
 int		is_builtin(char *name);
 int		execute_builtin(t_cmd *cmd, t_shell *shell);
+int		execute_builtin_with_redir(t_cmd *cmd, t_shell *shell);
+int		execute_redir_only(t_cmd *cmd);
 void		exec_child(t_cmd *cmd, t_shell *shell);
 int		builtin_echo(t_cmd *cmd);
 int		builtin_cd(t_cmd *cmd, t_shell *shell);
@@ -107,6 +126,9 @@ int		error_msg(int status, const char *cmd,
 			const char *arg, const char *msg);
 t_token *lexer(char *line);
 void print_tokens(t_token *list);
+int		read_name(const char *in, size_t *pos, char *name);
+int		append_str(t_expbuf *out, const char *s);
+char	*expand_one(const char *str, t_shell *shell);
 void	expand_variables(t_token *tokens, t_shell *shell);
 
 #endif

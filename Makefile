@@ -5,15 +5,22 @@ CFLAGS = -Wall -Wextra -Werror
 
 SRC = main.c \
 	exec_core.c \
+	exec_builtin.c \
 	exec_path.c \
+	exec_heredoc.c \
 	exec_redir.c \
 	exec_pipe.c \
 	builtin_io.c \
 	builtin_state.c \
+	builtin_unset.c \
 	builtin_exit.c \
 	error_msg.c \
 	token.c \
+	expand_append.c \
+	expand_name.c \
+	expand_one.c \
 	expand_var.c \
+	env_set.c \
 	env_utils.c \
 	ft_split.c \
 	utils.c
