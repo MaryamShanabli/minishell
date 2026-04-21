@@ -15,7 +15,13 @@ SRC = main.c \
 	builtin_unset.c \
 	builtin_exit.c \
 	error_msg.c \
-	token.c \
+	token_lexer.c \
+	token_builder.c \
+	shell_loop.c \
+	shell_redir.c \
+	shell_parse_utils.c \
+	shell_parser.c \
+	shell_memory.c \
 	expand_append.c \
 	expand_name.c \
 	expand_one.c \
@@ -23,7 +29,8 @@ SRC = main.c \
 	env_set.c \
 	env_utils.c \
 	ft_split.c \
-	utils.c
+	utils1.c \
+	utils2.c
 OBJ = $(SRC:.c=.o)
 
 all: $(NAME)

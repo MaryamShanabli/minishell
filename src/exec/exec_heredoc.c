@@ -3,15 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   exec_heredoc.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 17:40:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 18:01:28 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/21 16:51:41 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-#include <signal.h>
 
 static void	heredoc_loop(int write_fd, const char *delim)
 {
