@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   shell_parse_utils.c                                :+:      :+:    :+:   */
+/*   shell_tokens.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/21 16:36:20 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/04/25 13:51:04 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,8 @@ int	handle_token(t_token **it, t_cmd **current, char ***argv, int *argc)
 	else if ((*it)->type == T_PIPE)
 	{
 		status = handle_pipe_token(current, argv, argc);
+		if (status > 0)
+			*it = (*it)->next;
 		return (status);
 	}
 	*it = (*it)->next;
