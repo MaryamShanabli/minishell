@@ -6,10 +6,9 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:30 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/25 14:39:44 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/19 16:32:48 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 
 #include "minishell.h"
 
@@ -132,4 +131,3 @@ int	builtin_export(t_cmd *cmd, t_shell *shell)
 	}
 	return (status);
 }
-

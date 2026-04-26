@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   shell_parser.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 18:00:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/25 14:23:47 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/21 16:32:18 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,8 +67,6 @@ static int	build_command_from_tokens(t_token *tokens, t_cmd *cmd,
 		status = handle_token(&it, &current, &argv, argc);
 		if (status <= 0 || status == 2)
 		{
-			if (argv)
-				dfree(argv);
 			if (status == 2)
 				syntax_pipe_error();
 			return (0);
@@ -76,8 +74,6 @@ static int	build_command_from_tokens(t_token *tokens, t_cmd *cmd,
 	}
 	if (*argc == 0 && cmd->next)
 	{
-		if (argv)
-			dfree(argv);
 		syntax_pipe_error();
 		return (0);
 	}
@@ -104,10 +100,9 @@ t_cmd	process_input(char *input, t_shell *shell)
 	current_argc = 0;
 	if (!build_command_from_tokens(tokens, &cmd, current_argv, &current_argc))
 	{
+		cmd.pid = -2;
 		free_tokens(tokens);
 		free_cmd_list(&cmd);
-		init_cmd(&cmd);
-		cmd.pid = -2;
 		return (cmd);
 	}
 	free_tokens(tokens);

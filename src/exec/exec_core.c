@@ -6,12 +6,11 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:49 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/25 15:04:43 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/19 17:16:01 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-#include <sys/stat.h>
 
 static int	child_status(int cmd_status)
 {
@@ -23,7 +22,7 @@ static int	child_status(int cmd_status)
 	else if (WIFSIGNALED(cmd_status))
 	{
 		if (WTERMSIG(cmd_status) == SIGQUIT)
-			write(2, "Quit\n", 5);
+			write(2, "Quit: 3\n", 8);
 		else if (WTERMSIG(cmd_status) == SIGINT)
 			write(2, "\n", 1);
 		status = 128 + WTERMSIG(cmd_status);
@@ -57,16 +56,10 @@ void	exec_child(t_cmd *cmd, t_shell *shell)
 	char	*path;
 	char	*slash;
 	int		err;
-	struct stat st;
 
 	slash = ft_strchr(cmd->argv[0], '/');
 	if (slash)
 	{
-		if (stat(cmd->argv[0], &st) == 0 && S_ISDIR(st.st_mode))
-		{
-			err = error_msg(126, cmd->argv[0], NULL, "Is a directory");
-			exit(err);
-		}
 		execve(cmd->argv[0], cmd->argv, shell->env);
 		perror(cmd->argv[0]);
 		if (errno == ENOENT)
@@ -92,17 +85,11 @@ static int	execute_external(t_cmd *cmd, t_shell *shell)
 	pid_t	pid;
 	int		cmd_status;
 	int		status;
-	void	(*old_int)(int);
-	void	(*old_quit)(int);
 
-	old_int = signal(SIGINT, SIG_IGN);
-	old_quit = signal(SIGQUIT, SIG_IGN);
 	pid = fork();
 	if (pid == -1)
 	{
 		perror("fork");
-		signal(SIGINT, old_int);
-		signal(SIGQUIT, old_quit);
 		return (1);
 	}
 	if (pid == 0)
@@ -114,8 +101,6 @@ static int	execute_external(t_cmd *cmd, t_shell *shell)
 		exec_child(cmd, shell);
 	}
 	waitpid(pid, &cmd_status, 0);
-	signal(SIGINT, old_int);
-	signal(SIGQUIT, old_quit);
 	status = child_status(cmd_status);
 	return (status);
 }

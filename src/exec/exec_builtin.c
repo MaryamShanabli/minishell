@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 16:45:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/25 14:39:44 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/19 17:04:54 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ int	is_builtin(char *name)
 		return (0);
 	if (!ft_strcmp(name, "echo") || !ft_strcmp(name, "cd")
 		|| !ft_strcmp(name, "pwd") || !ft_strcmp(name, "export")
-		|| !ft_strcmp(name, ".")
 		|| !ft_strcmp(name, "unset") || !ft_strcmp(name, "env")
 		|| !ft_strcmp(name, "exit"))
 		return (1);
@@ -46,8 +45,6 @@ int	execute_builtin(t_cmd *cmd, t_shell *shell)
 		status = builtin_pwd(cmd);
 	else if (!ft_strcmp(cmd->argv[0], "export"))
 		status = builtin_export(cmd, shell);
-	else if (!ft_strcmp(cmd->argv[0], "."))
-		status = builtin_dot(cmd, shell);
 	else if (!ft_strcmp(cmd->argv[0], "unset"))
 		status = builtin_unset(cmd, shell);
 	else if (!ft_strcmp(cmd->argv[0], "env"))

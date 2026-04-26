@@ -3,22 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   shell_loop.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
+/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/25 15:52:12 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/21 16:11:17 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static int	consume_sigint(t_shell *shell)
+static int	handle_signal_check(void)
 {
 	if (g_signal == SIGINT)
 	{
 		g_signal = 0;
-		if (shell)
-			shell->last_status = 130;
 		return (1);
 	}
 	return (0);
@@ -46,7 +44,7 @@ static int	process_line(char *input, t_shell *shell)
 		shell->last_status = 2;
 	else
 		shell->last_status = execute(&cmd, shell);
-	if (cmd.pid != -2 && cmd.argv && !cmd.next && !ft_strcmp(cmd.argv[0], "exit"))
+	if (cmd.argv && !cmd.next && !ft_strcmp(cmd.argv[0], "exit"))
 	{
 		free_cmd_list(&cmd);
 		free(input);
@@ -63,21 +61,21 @@ int	interactive_loop(t_shell *shell)
 
 	while (1)
 	{
+		if (handle_signal_check())
+			continue ;
 		input = readline("minishell$ ");
 		if (!input)
 		{
-			if (consume_sigint(shell))
+			if (handle_signal_check())
 				continue ;
 			handle_eof(shell->last_status);
 			break ;
 		}
-		if (g_signal == SIGINT && !*input)
+		if (handle_signal_check())
 		{
-			consume_sigint(shell);
 			free(input);
 			continue ;
 		}
-		consume_sigint(shell);
 		if (process_line(input, shell) == 2)
 			break ;
 	}

@@ -13,7 +13,6 @@ SRC = src/core/main.c \
 	src/builtin/builtin_io.c \
 	src/builtin/builtin_state.c \
 	src/builtin/builtin_unset.c \
-	src/builtin/builtin_dot.c \
 	src/builtin/builtin_exit.c \
 	src/utils/error_msg.c \
 	src/parser/token_lexer.c \
