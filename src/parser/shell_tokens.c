@@ -3,14 +3,12 @@
 /*                                                        :::      ::::::::   */
 /*   shell_tokens.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/26 17:40:36 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/26 17:40:37 by oalfoqha         ###   ########.fr       */
+/*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
+/*   Updated: 2026/04/25 13:51:04 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-
 
 #include "minishell.h"
 
@@ -66,7 +64,7 @@ static int	handle_pipe_token(t_cmd **current, char ***argv, int *argc)
 {
 	t_cmd	*new_cmd;
 
-	if (*argc == 0)
+	if (*argc == 0 && (*current)->redirs == NULL)
 		return (2);
 	(*current)->argv = *argv;
 	*argv = NULL;
@@ -102,6 +100,8 @@ int	handle_token(t_token **it, t_cmd **current, char ***argv, int *argc)
 	else if ((*it)->type == T_PIPE)
 	{
 		status = handle_pipe_token(current, argv, argc);
+		if (status > 0)
+			*it = (*it)->next;
 		return (status);
 	}
 	*it = (*it)->next;

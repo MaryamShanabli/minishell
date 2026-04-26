@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:59 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 17:54:44 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/04/25 15:04:43 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@ static int	wait_pipeline(t_cmd *first)
 		else if (WIFSIGNALED(cmd_status))
 		{
 			if (cmd->next == NULL && WTERMSIG(cmd_status) == SIGQUIT)
-				write(2, "Quit: 3\n", 8);
+				write(2, "Quit\n", 5);
 			else if (cmd->next == NULL && WTERMSIG(cmd_status) == SIGINT)
 				write(2, "\n", 1);
 			status = 128 + WTERMSIG(cmd_status);
@@ -97,22 +97,30 @@ int	execute_pipeline(t_cmd *cmd, t_shell *shell)
 	t_exec	exec;
 	t_cmd	*first;
 	int		status;
+	void	(*old_int)(int);
+	void	(*old_quit)(int);
 
 	first = cmd;
 	exec.in_fd = 0;
 	exec.pipe_fd[0] = -1;
 	exec.pipe_fd[1] = -1;
 	exec.prev_pipe_read = -1;
+	old_int = signal(SIGINT, SIG_IGN);
+	old_quit = signal(SIGQUIT, SIG_IGN);
 	while (cmd)
 	{
 		if (cmd->next && pipe(exec.pipe_fd) == -1)
 		{
 			perror("pipe");
+			signal(SIGINT, old_int);
+			signal(SIGQUIT, old_quit);
 			return (1);
 		}
 		exec_pipe(cmd, &exec, shell);
 		cmd = cmd->next;
 	}
 	status = wait_pipeline(first);
+	signal(SIGINT, old_int);
+	signal(SIGQUIT, old_quit);
 	return (status);
 }

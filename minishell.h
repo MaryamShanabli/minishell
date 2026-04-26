@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:40:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/21 16:50:58 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/04/26 18:38:21 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 # include <unistd.h>
+#include <sys/stat.h>
 
 extern volatile sig_atomic_t	g_signal;
 
@@ -131,6 +132,7 @@ int		builtin_pwd(t_cmd *cmd);
 int		builtin_env(t_cmd *cmd, t_shell *shell);
 int		builtin_cd(t_cmd *cmd, t_shell *shell);
 int		builtin_export(t_cmd *cmd, t_shell *shell);
+int		builtin_dot(t_cmd *cmd, t_shell *shell);
 int		builtin_unset(t_cmd *cmd, t_shell *shell);
 int		builtin_exit(t_cmd *cmd, int status);
 
