@@ -1,14 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   shell_parse_utils.c                                :+:      :+:    :+:   */
+/*   shell_tokens.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/21 16:36:20 by oalfoqha         ###   ########.fr       */
+/*   Created: 2026/04/26 17:40:36 by oalfoqha          #+#    #+#             */
+/*   Updated: 2026/04/26 17:40:37 by oalfoqha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+
 
 #include "minishell.h"
 
@@ -64,7 +66,7 @@ static int	handle_pipe_token(t_cmd **current, char ***argv, int *argc)
 {
 	t_cmd	*new_cmd;
 
-	if (*argc == 0 && (*current)->redirs == NULL)
+	if (*argc == 0)
 		return (2);
 	(*current)->argv = *argv;
 	*argv = NULL;
