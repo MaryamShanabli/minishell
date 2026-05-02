@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   shell_memory.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/21 16:11:17 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/05/02 17:24:09 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	free_tokens(t_token *tokens)
 	}
 }
 
-static void	free_redirs(t_redir *redirs)
+void	free_redirs(t_redir *redirs)
 {
 	t_redir	*next;
 

@@ -6,14 +6,14 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:49 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/25 15:04:43 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/02 22:44:45 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 #include <sys/stat.h>
 
-static int	child_status(int cmd_status)
+int	child_status(int cmd_status)
 {
 	int	status;
 
@@ -52,72 +52,55 @@ static int	exec_no_argv(t_cmd *cmd, t_shell *shell)
 	return (-1);
 }
 
+static void	exec_slash_path(t_cmd *cmd, t_shell *shell)
+{
+	struct stat	st;
+	int			saved_errno;
+
+	if (stat(cmd->argv[0], &st) == 0 && S_ISDIR(st.st_mode))
+	{
+		error_msg(126, cmd->argv[0], NULL, "Is a directory");
+		exit(126);
+	}
+	execve(cmd->argv[0], cmd->argv, shell->env);
+	saved_errno = errno;
+	error_msg(0, cmd->argv[0], NULL, strerror(saved_errno));
+	if (saved_errno == ENOENT)
+		exit(127);
+	if (saved_errno == EACCES)
+		exit(126);
+	exit(126);
+}
+
 void	exec_child(t_cmd *cmd, t_shell *shell)
 {
 	char	*path;
-	char	*slash;
-	int		err;
-	struct stat st;
+	int		saved_errno;
 
-	slash = ft_strchr(cmd->argv[0], '/');
-	if (slash)
+	if (ft_strcmp(cmd->argv[0], ".") == 0)
 	{
-		if (stat(cmd->argv[0], &st) == 0 && S_ISDIR(st.st_mode))
-		{
-			err = error_msg(126, cmd->argv[0], NULL, "Is a directory");
-			exit(err);
-		}
-		execve(cmd->argv[0], cmd->argv, shell->env);
-		perror(cmd->argv[0]);
-		if (errno == ENOENT)
-			exit(127);
-		exit(126);
+		write(2, "./minishell: .: filename argument required\n", 43);
+		write(2, "./minishell: .: usage: . filename [arguments]\n", 47);
+		exit(2);
+	}
+	if (ft_strchr(cmd->argv[0], '/'))
+	{
+		exec_slash_path(cmd, shell);
+		return ;
 	}
 	path = get_path(cmd->argv[0], shell);
 	if (!path)
 	{
-		err = error_msg(127, cmd->argv[0], NULL, "command not found");
-		exit(err);
+		error_msg(127, cmd->argv[0], NULL, "command not found");
+		exit(127);
 	}
 	execve(path, cmd->argv, shell->env);
-	perror(path);
+	saved_errno = errno;
+	error_msg(0, path, NULL, strerror(saved_errno));
 	free(path);
-	if (errno == ENOENT)
+	if (saved_errno == ENOENT)
 		exit(127);
 	exit(126);
-}
-
-static int	execute_external(t_cmd *cmd, t_shell *shell)
-{
-	pid_t	pid;
-	int		cmd_status;
-	int		status;
-	void	(*old_int)(int);
-	void	(*old_quit)(int);
-
-	old_int = signal(SIGINT, SIG_IGN);
-	old_quit = signal(SIGQUIT, SIG_IGN);
-	pid = fork();
-	if (pid == -1)
-	{
-		perror("fork");
-		signal(SIGINT, old_int);
-		signal(SIGQUIT, old_quit);
-		return (1);
-	}
-	if (pid == 0)
-	{
-		signal(SIGINT, SIG_DFL);
-		signal(SIGQUIT, SIG_DFL);
-		if (apply_redirections(cmd))
-			exit(130);
-		exec_child(cmd, shell);
-	}
-	waitpid(pid, &cmd_status, 0);
-	signal(SIGINT, old_int);
-	signal(SIGQUIT, old_quit);
-	status = child_status(cmd_status);
-	return (status);
 }
 
 int	execute(t_cmd *cmd, t_shell *shell)
@@ -137,7 +120,8 @@ int	execute(t_cmd *cmd, t_shell *shell)
 	if (is_builtin(cmd->argv[0]))
 	{
 		status = execute_builtin_with_redir(cmd, shell);
-		return (status);
+		if (status != -1)
+			return (status);
 	}
 	status = execute_external(cmd, shell);
 	return (status);

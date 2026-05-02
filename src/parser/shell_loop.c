@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/25 15:52:12 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/02 22:41:14 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ static void	handle_eof(int status)
 static int	process_line(char *input, t_shell *shell)
 {
 	t_cmd	cmd;
+	int		raw;
 
 	if (!*input)
 	{
@@ -46,8 +47,18 @@ static int	process_line(char *input, t_shell *shell)
 		shell->last_status = 2;
 	else
 		shell->last_status = execute(&cmd, shell);
-	if (cmd.pid != -2 && cmd.argv && !cmd.next && !ft_strcmp(cmd.argv[0], "exit"))
+	if (cmd.pid != -2 && cmd.argv && !cmd.next
+		&& !ft_strcmp(cmd.argv[0], "exit"))
 	{
+		raw = shell->last_status;
+		if (raw == 1)
+		{
+			free_cmd_list(&cmd);
+			free(input);
+			return (0);
+		}
+		if (raw < 0)
+			shell->last_status = -raw;
 		free_cmd_list(&cmd);
 		free(input);
 		return (2);
@@ -63,6 +74,13 @@ int	interactive_loop(t_shell *shell)
 
 	while (1)
 	{
+		if (g_signal == SIGINT)
+		{
+			rl_on_new_line();
+			rl_replace_line("", 0);
+			rl_redisplay();
+			consume_sigint(shell);
+		}
 		input = readline("minishell$ ");
 		if (!input)
 		{

@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils1.c                                           :+:      :+:    :+:   */
+/*   libft_string.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 18:06:11 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 18:11:28 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/02 22:45:02 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,4 +91,22 @@ char	*ft_strncpy(char *dst, const char *src, size_t n)
 		i++;
 	}
 	return (dst);
+}
+
+long	ft_atol(const char *s)
+{
+	long	result;
+	int		sign;
+
+	result = 0;
+	sign = 1;
+	while (*s == ' ' || *s == '\t')
+		s++;
+	if (*s == '-')
+		sign = -1;
+	if (*s == '+' || *s == '-')
+		s++;
+	while (*s >= '0' && *s <= '9')
+		result = result * 10 + (*s++ - '0');
+	return (sign * result);
 }

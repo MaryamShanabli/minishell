@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:14:33 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 18:03:04 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/02 22:40:44 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ static int	do_one_redir(t_redir *redir)
 		fd = open(redir->target, O_WRONLY | O_CREAT | O_APPEND, 0644);
 	if (fd == -1)
 	{
-		perror(redir->target);
+		error_msg(1, redir->target, NULL, strerror(errno));
 		return (1);
 	}
 	status = dup_or_fail(fd, redir->type);

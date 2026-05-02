@@ -10,10 +10,11 @@ SRC = src/core/main.c \
 	src/exec/exec_heredoc.c \
 	src/exec/exec_redir.c \
 	src/exec/exec_pipe.c \
+	src/exec/exec_external.c \
 	src/builtin/builtin_io.c \
 	src/builtin/builtin_state.c \
+	src/builtin/builtin_export.c \
 	src/builtin/builtin_unset.c \
-	src/builtin/builtin_dot.c \
 	src/builtin/builtin_exit.c \
 	src/utils/error_msg.c \
 	src/parser/token_lexer.c \

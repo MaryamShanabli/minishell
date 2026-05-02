@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtin_exit.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:20 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/21 16:30:54 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/05/02 16:58:02 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,14 +84,14 @@ int	builtin_exit(t_cmd *cmd, int status)
 	argc = 0;
 	while (cmd->argv && cmd->argv[argc])
 		argc++;
-	if (isatty(STDIN_FILENO) && isatty(STDOUT_FILENO))
+	if (isatty(STDIN_FILENO))
 		write(2, "exit\n", 5);
 	if (argc == 1)
 		return ((unsigned char)status);
 	if (!parse_exit_code(cmd->argv[1], &code))
 	{
 		err = error_msg(2, "exit", cmd->argv[1], "numeric argument required");
-		return (err);
+		return (-(err));
 	}
 	if (argc > 2)
 	{

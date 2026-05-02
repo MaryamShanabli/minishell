@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 17:40:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/25 15:48:29 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/02 22:47:34 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,10 @@ static void	heredoc_loop(int write_fd, const char *delim)
 	{
 		line = readline("> ");
 		if (!line)
-			break ;
+		{
+			close(write_fd);
+			_exit(1);
+		}
 		if (!ft_strcmp(line, delim))
 		{
 			free(line);
@@ -47,6 +50,12 @@ static int	heredoc_status(int wait_status, int read_fd)
 	{
 		close(read_fd);
 		return (130);
+	}
+	if (WIFEXITED(wait_status) && WEXITSTATUS(wait_status) == 1)
+	{
+		write(2, "./minishell: warning: here-document delimited"
+			" by end-of-file\n", 62);
+		return (0);
 	}
 	return (0);
 }

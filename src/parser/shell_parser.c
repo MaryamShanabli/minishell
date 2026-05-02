@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 18:00:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/25 14:23:47 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/02 17:29:24 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,12 @@ static void	unlink_empty_commands(t_cmd *first)
 				curr->redirs = next->redirs;
 			else if (next->redirs && next->next && !next->next->redirs)
 				next->next->redirs = next->redirs;
+			else if (next->redirs)
+			{
+				free_redirs(next->redirs);
+				next->redirs = NULL;
+			}
+			next->redirs = NULL;
 			curr->next = next->next;
 			free(next);
 			next = curr->next;

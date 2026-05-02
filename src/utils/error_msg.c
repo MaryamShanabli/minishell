@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:45 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 17:04:53 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/02 22:16:11 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 int	error_msg(int status, const char *cmd, const char *arg, const char *msg)
 {
-	write(2, "minishell: ", 11);
+	write(2, "./minishell: ", 13);
 	write(2, cmd, ft_strlen(cmd));
 	write(2, ": ", 2);
 	if (arg)
@@ -24,5 +24,7 @@ int	error_msg(int status, const char *cmd, const char *arg, const char *msg)
 	}
 	write(2, msg, ft_strlen(msg));
 	write(2, "\n", 1);
+	if (status == 0)
+		return (0);
 	return (status);
 }

@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:13:06 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 18:17:43 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/02 17:00:51 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,18 +89,22 @@ static int	expand_step(const char *str, t_expand_state *st,
 
 	err = 1;
 	if (str[st->pos] == '\'' && !st->in_double)
+	{
 		st->in_single = !st->in_single;
+		st->pos++;
+	}
 	else if (str[st->pos] == '"' && !st->in_single)
+	{
 		st->in_double = !st->in_double;
+		st->pos++;
+	}
 	else if (str[st->pos] == '$' && !st->in_single)
 		err = handle_dollar(str, &st->pos, out, shell);
 	else
+	{
 		err = append_char(out, str[st->pos]);
-	if ((str[st->pos] != '$' || st->in_single) && err)
 		st->pos++;
-	if ((str[st->pos] == '\'' && !st->in_double) || (str[st->pos] == '"'
-			&& !st->in_single))
-		st->pos++;
+	}
 	return (err);
 }
 
