@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   token_lexer.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oalfoqha <oalfoqha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 16:27:29 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/04/21 15:10:27 by oalfoqha         ###   ########.fr       */
+/*   Updated: 2026/05/03 15:53:35 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 static int	is_word_break(char c)
 {
-	return (c == ' ' || c == '|' || c == '>' || c == '<');
+	return (c == ' ' || c == '\t' || c == '|' || c == '>' || c == '<');
 }
 
 static void	advance_word(char *line, int *i, char *quote)
@@ -69,7 +69,7 @@ t_token	*lexer(char *line)
 	first_word = 1;
 	while (line[i])
 	{
-		while (line[i] == ' ')
+		while (line[i] == ' ' || line[i] == '\t')
 			i++;
 		if (!line[i])
 			break ;

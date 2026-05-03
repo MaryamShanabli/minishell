@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/02 22:41:14 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 15:46:03 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,14 +51,18 @@ static int	process_line(char *input, t_shell *shell)
 		&& !ft_strcmp(cmd.argv[0], "exit"))
 	{
 		raw = shell->last_status;
-		if (raw == 1)
+		if (raw == 256)
 		{
+			shell->last_status = 1;
 			free_cmd_list(&cmd);
 			free(input);
 			return (0);
 		}
 		if (raw < 0)
+		{
 			shell->last_status = -raw;
+			raw = shell->last_status;
+		}
 		free_cmd_list(&cmd);
 		free(input);
 		return (2);

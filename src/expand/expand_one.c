@@ -6,13 +6,13 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:13:06 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/02 17:00:51 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 15:58:48 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static int	append_char(t_expbuf *out, char c)
+int	append_char(t_expbuf *out, char c)
 {
 	char	*new_buf;
 

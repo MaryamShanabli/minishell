@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:40:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/02 22:30:02 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 16:11:38 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,7 +126,7 @@ int		error_msg(int status, const char *cmd,
 int		is_builtin(char *name);
 int		execute_builtin(t_cmd *cmd, t_shell *shell);
 int		execute_builtin_with_redir(t_cmd *cmd, t_shell *shell);
-int		execute_redir_only(t_cmd *cmd);
+int		execute_redir_only(t_cmd *cmd, t_shell *shell);
 int		execute_external(t_cmd *cmd, t_shell *shell);
 
 int		builtin_echo(t_cmd *cmd);
@@ -141,8 +141,8 @@ char	*get_path(char *cmd, t_shell *shell);
 int		execute(t_cmd *cmd, t_shell *shell);
 void	exec_child(t_cmd *cmd, t_shell *shell);
 int		execute_pipeline(t_cmd *cmd, t_shell *shell);
-int		apply_redirections(t_cmd *cmd);
-int		do_heredoc(const char *delim);
+int		apply_redirections(t_cmd *cmd, t_shell *shell);
+int		do_heredoc(const char *delim, t_shell *shell);
 void	child_reset_signals(void);
 int		child_status(int cmd_status);
 
@@ -158,6 +158,7 @@ char	*expand_one(const char *str, t_shell *shell);
 int		append_str(t_expbuf *out, const char *s);
 int		read_name(const char *in, size_t *pos, char *name);
 void	expand_variables(t_token *tokens, t_shell *shell);
+int		append_char(t_expbuf *out, char c);
 
 void	init_cmd(t_cmd *cmd);
 t_cmd	process_input(char *input, t_shell *shell);

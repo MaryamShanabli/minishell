@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 16:45:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/02 22:24:10 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 16:11:23 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,33 +65,45 @@ int	execute_builtin_with_redir(t_cmd *cmd, t_shell *shell)
 	int	status;
 
 	saved_in = dup(STDIN_FILENO);
-	saved_out = dup(STDOUT_FILENO);
-	if (saved_in == -1 || saved_out == -1)
+	if (saved_in == -1)
 	{
 		perror("dup");
 		return (1);
 	}
-	status = apply_redirections(cmd);
+	saved_out = dup(STDOUT_FILENO);
+	if (saved_out == -1)
+	{
+		perror("dup");
+		close(saved_in);
+		return (1);
+	}
+	status = apply_redirections(cmd, shell);
 	if (!status)
 		status = execute_builtin(cmd, shell);
 	restore_stdio(saved_in, saved_out);
 	return (status);
 }
 
-int	execute_redir_only(t_cmd *cmd)
+int	execute_redir_only(t_cmd *cmd, t_shell *shell)
 {
 	int	saved_in;
 	int	saved_out;
 	int	status;
 
 	saved_in = dup(STDIN_FILENO);
-	saved_out = dup(STDOUT_FILENO);
-	if (saved_in == -1 || saved_out == -1)
+	if (saved_in == -1)
 	{
 		perror("dup");
 		return (1);
 	}
-	status = apply_redirections(cmd);
+	saved_out = dup(STDOUT_FILENO);
+	if (saved_out == -1)
+	{
+		perror("dup");
+		close(saved_in);
+		return (1);
+	}
+	status = apply_redirections(cmd, shell);
 	restore_stdio(saved_in, saved_out);
 	return (status);
 }

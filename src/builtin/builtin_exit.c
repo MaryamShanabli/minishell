@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:20 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/02 16:58:02 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 15:44:39 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,7 @@ int	builtin_exit(t_cmd *cmd, int status)
 	if (argc > 2)
 	{
 		err = error_msg(1, "exit", NULL, "too many arguments");
-		return (err);
+		return (256);
 	}
 	return ((unsigned char)code);
 }

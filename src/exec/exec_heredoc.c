@@ -6,16 +6,17 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 17:40:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/02 22:47:34 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 16:08:41 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 #include <termios.h>
 
-static void	heredoc_loop(int write_fd, const char *delim)
+static void	heredoc_loop(int write_fd, const char *delim, t_shell *shell)
 {
 	char	*line;
+	char	*expanded;
 
 	while (1)
 	{
@@ -30,9 +31,16 @@ static void	heredoc_loop(int write_fd, const char *delim)
 			free(line);
 			break ;
 		}
-		write(write_fd, line, ft_strlen(line));
-		write(write_fd, "\n", 1);
+		expanded = expand_one(line, shell);
 		free(line);
+		if (!expanded)
+		{
+			close(write_fd);
+			_exit(1);
+		}
+		write(write_fd, expanded, ft_strlen(expanded));
+		write(write_fd, "\n", 1);
+		free(expanded);
 	}
 	close(write_fd);
 	_exit(0);
@@ -117,7 +125,7 @@ static int	heredoc_finish(pid_t pid, int fd[2], void (*old_int)(int),
 	return (0);
 }
 
-int	do_heredoc(const char *delim)
+int	do_heredoc(const char *delim, t_shell *shell)
 {
 	int		fd[2];
 	pid_t	pid;
@@ -136,7 +144,7 @@ int	do_heredoc(const char *delim)
 		signal(SIGINT, SIG_DFL);
 		signal(SIGQUIT, SIG_IGN);
 		close(fd[0]);
-		heredoc_loop(fd[1], delim);
+		heredoc_loop(fd[1], delim, shell);
 	}
 	status = heredoc_finish(pid, fd, old_int, old_quit, &old_term);
 	return (status);

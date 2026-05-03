@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:14:33 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/02 22:40:44 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 16:10:09 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ static int	reset_for_heredoc(int base_stdin, t_redir *redir)
 	return (0);
 }
 
-static int	apply_loop(t_redir *redir, int base_stdin)
+static int	apply_loop(t_redir *redir, int base_stdin, t_shell *shell)
 {
 	int	status;
 
@@ -75,7 +75,7 @@ static int	apply_loop(t_redir *redir, int base_stdin)
 		if (!status)
 		{
 			if (redir->type == R_HEREDOC)
-				status = do_heredoc(redir->target);
+				status = do_heredoc(redir->target, shell);
 			else
 				status = do_one_redir(redir);
 		}
@@ -86,7 +86,7 @@ static int	apply_loop(t_redir *redir, int base_stdin)
 	return (0);
 }
 
-int	apply_redirections(t_cmd *cmd)
+int	apply_redirections(t_cmd *cmd, t_shell *shell)
 {
 	int		base_stdin;
 	int		status;
@@ -99,7 +99,7 @@ int	apply_redirections(t_cmd *cmd)
 		perror("dup");
 		return (1);
 	}
-	status = apply_loop(cmd->redirs, base_stdin);
+	status = apply_loop(cmd->redirs, base_stdin, shell);
 	if (status)
 	{
 		close(base_stdin);

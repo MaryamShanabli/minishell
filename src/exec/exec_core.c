@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:49 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/02 22:44:45 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 16:11:43 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ static int	exec_no_argv(t_cmd *cmd, t_shell *shell)
 
 	if ((!cmd->argv || !cmd->argv[0]) && cmd->redirs)
 	{
-		status = execute_redir_only(cmd);
+		status = execute_redir_only(cmd, shell);
 		if (status)
 			return (status);
 		if (cmd->next)
