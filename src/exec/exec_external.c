@@ -6,13 +6,24 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/02 22:18:55 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 18:12:11 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:38:15 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-int	child_status(int cmd_status)
+void	child_reset_signals(void)
+{
+	struct sigaction	sa;
+
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGQUIT, &sa, NULL);
+}
+
+static int	child_status(int cmd_status)
 {
 	int	status;
 
@@ -30,38 +41,6 @@ int	child_status(int cmd_status)
 	return (status);
 }
 
-int	exec_no_argv(t_cmd *cmd, t_shell *shell)
-{
-	int	status;
-
-	if ((!cmd->argv || !cmd->argv[0]) && cmd->redirs)
-	{
-		status = execute_redir_only(cmd);
-		if (status)
-			return (status);
-		if (cmd->next)
-		{
-			status = execute_pipeline(cmd->next, shell);
-			return (status);
-		}
-		return (0);
-	}
-	if (!cmd->argv || !cmd->argv[0])
-		return (shell->last_status);
-	return (-1);
-}
-
-void	child_reset_signals(void)
-{
-	struct sigaction	sa;
-
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = 0;
-	sa.sa_handler = SIG_DFL;
-	sigaction(SIGINT, &sa, NULL);
-	sigaction(SIGQUIT, &sa, NULL);
-}
-
 static int	fork_and_exec(t_cmd *cmd, t_shell *shell)
 {
 	pid_t	pid;
@@ -76,7 +55,7 @@ static int	fork_and_exec(t_cmd *cmd, t_shell *shell)
 	if (pid == 0)
 	{
 		child_reset_signals();
-		if (apply_redirections(cmd))
+		if (apply_redirections(cmd, shell))
 			exit(1);
 		exec_child(cmd, shell);
 	}

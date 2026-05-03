@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/03 18:01:43 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 18:20:30 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:38:04 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ void	pipe_child(t_cmd *cmd, t_exec *exec, t_shell *shell)
 		dup2(exec->pipe_fd[1], STDOUT_FILENO);
 	close_fd(&exec->pipe_fd[0]);
 	close_fd(&exec->pipe_fd[1]);
-	if (apply_redirections(cmd))
+	if (apply_redirections(cmd, shell))
 		exit(1);
 	if (is_builtin(cmd->argv[0]))
 	{
@@ -43,22 +43,4 @@ void	pipe_child(t_cmd *cmd, t_exec *exec, t_shell *shell)
 		exit(status);
 	}
 	exec_child(cmd, shell);
-}
-
-int	child_status(int cmd_status)
-{
-	int	status;
-
-	status = 1;
-	if (WIFEXITED(cmd_status))
-		status = WEXITSTATUS(cmd_status);
-	else if (WIFSIGNALED(cmd_status))
-	{
-		if (WTERMSIG(cmd_status) == SIGQUIT)
-			write(2, "Quit\n", 5);
-		else if (WTERMSIG(cmd_status) == SIGINT)
-			write(2, "\n", 1);
-		status = 128 + WTERMSIG(cmd_status);
-	}
-	return (status);
 }

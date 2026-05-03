@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:40:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/03 18:26:11 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:38:20 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
+# include <termios.h>
 # include <sys/types.h>
 # include <sys/wait.h>
 # include <unistd.h>
@@ -106,10 +107,10 @@ typedef struct s_expand_state
 typedef struct s_hd_finish
 {
 	pid_t			pid;
-	int				*fd;
+	int				fd[2];
 	void			(*old_int)(int);
 	void			(*old_quit)(int);
-	struct termios	*old_term;
+	struct termios	old_term;
 }	t_hd_finish;
 
 char	**ft_split(char const *s, char c);
@@ -158,8 +159,6 @@ int		execute_pipeline(t_cmd *cmd, t_shell *shell);
 int		apply_redirections(t_cmd *cmd, t_shell *shell);
 int		do_heredoc(const char *delim, t_shell *shell);
 void	child_reset_signals(void);
-int		child_status(int cmd_status);
-int		exec_no_argv(t_cmd *cmd, t_shell *shell);
 void	pipe_child(t_cmd *cmd, t_exec *exec, t_shell *shell);
 void	pipe_sig_setup(struct sigaction *sa_ign, struct sigaction *old_int,
 			struct sigaction *old_quit);
