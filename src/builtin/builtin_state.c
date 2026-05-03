@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:30 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/02 22:43:40 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 15:16:11 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ int	builtin_cd(t_cmd *cmd, t_shell *shell)
 	if (chdir(path) == -1)
 	{
 		free(oldpwd);
-		error_msg(1, "cd", path, "no such file or directory");
+		error_msg(1, "cd", path, "No such file or directory");
 		return (1);
 	}
 	newpwd = getcwd(NULL, 0);
