@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/02 22:26:56 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/02 22:43:54 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:07:42 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,16 +28,6 @@ static void	print_export(const char *entry)
 	write(1, "=\"", 2);
 	write(1, eq + 1, ft_strlen(eq + 1));
 	write(1, "\"\n", 2);
-}
-
-static int	count_env(char **env)
-{
-	int	i;
-
-	i = 0;
-	while (env && env[i])
-		i++;
-	return (i);
 }
 
 static int	export_one_arg(char *arg, t_shell *shell)
@@ -90,27 +80,32 @@ static void	print_sorted_env(char **env, int n)
 		print_export(env[i++]);
 }
 
-int	builtin_export(t_cmd *cmd, t_shell *shell)
+static int	export_print_all(t_shell *shell)
 {
 	char	**sorted;
 	int		n;
 	int		i;
-	int		status;
+
+	n = count_env(shell->env);
+	sorted = malloc(sizeof(char *) * (n + 1));
+	if (!sorted)
+		return (1);
+	i = -1;
+	while (++i < n)
+		sorted[i] = shell->env[i];
+	sorted[n] = NULL;
+	print_sorted_env(sorted, n);
+	free(sorted);
+	return (0);
+}
+
+int	builtin_export(t_cmd *cmd, t_shell *shell)
+{
+	int	status;
+	int	i;
 
 	if (!cmd->argv[1])
-	{
-		n = count_env(shell->env);
-		sorted = malloc(sizeof(char *) * (n + 1));
-		if (!sorted)
-			return (1);
-		i = -1;
-		while (++i < n)
-			sorted[i] = shell->env[i];
-		sorted[n] = NULL;
-		print_sorted_env(sorted, n);
-		free(sorted);
-		return (0);
-	}
+		return (export_print_all(shell));
 	status = 0;
 	i = 1;
 	while (cmd->argv[i])

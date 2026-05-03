@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:38 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 16:47:22 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:07:57 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,4 +103,14 @@ int	env_unset(char ***env, const char *key)
 		i++;
 	}
 	return (0);
+}
+
+int	count_env(char **env)
+{
+	int	i;
+
+	i = 0;
+	while (env && env[i])
+		i++;
+	return (i);
 }

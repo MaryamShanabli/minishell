@@ -10,6 +10,7 @@ SRC = src/core/main.c \
 	src/exec/exec_heredoc.c \
 	src/exec/exec_redir.c \
 	src/exec/exec_pipe.c \
+	src/exec/exec_child.c \
 	src/exec/exec_external.c \
 	src/builtin/builtin_io.c \
 	src/builtin/builtin_state.c \
@@ -24,6 +25,7 @@ SRC = src/core/main.c \
 	src/parser/shell_tokens.c \
 	src/parser/shell_parser.c \
 	src/parser/shell_memory.c \
+	src/parser/shell_shlvl.c \
 	src/expand/expand_append.c \
 	src/expand/expand_name.c \
 	src/expand/expand_one.c \
@@ -32,7 +34,8 @@ SRC = src/core/main.c \
 	src/env/env_utils.c \
 	src/utils/libft_split.c \
 	src/utils/libft_memory.c \
-	src/utils/libft_string.c
+	src/utils/libft_string.c \
+	src/utils/libft_itoa.c
 OBJ = $(SRC:.c=.o)
 
 all: $(NAME)

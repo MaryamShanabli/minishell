@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:25 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 15:55:48 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:26:11 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,14 @@
 
 static int	has_n(const char *arg)
 {
-	int j;
+	int	j;
 
 	if (!arg || arg[0] != '-' || !arg[1])
 		return (0);
 	j = 1;
 	while (arg[j] == 'n')
 		j++;
-	if (arg[j] == '\0')
+	if (arg[j] != '\0')
 		return (0);
 	return (1);
 }

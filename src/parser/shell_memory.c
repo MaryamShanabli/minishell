@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/02 17:24:09 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 17:50:20 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,4 +61,11 @@ void	free_cmd_list(t_cmd *cmd)
 		node = next;
 	}
 	cmd->next = NULL;
+}
+
+void	handle_eof(int status)
+{
+	if (isatty(STDIN_FILENO))
+		write(1, "exit\n", 5);
+	(void)status;
 }

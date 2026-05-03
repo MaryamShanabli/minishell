@@ -6,11 +6,20 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 16:27:29 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/03 15:53:35 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:26:23 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+void	init_cmd(t_cmd *cmd)
+{
+	cmd->argv = NULL;
+	cmd->redirs = NULL;
+	cmd->is_builtin = 0;
+	cmd->pid = 0;
+	cmd->next = NULL;
+}
 
 static int	is_word_break(char c)
 {
@@ -79,13 +88,4 @@ t_token	*lexer(char *line)
 			add_word_token(line, &i, &tokens, &first_word);
 	}
 	return (tokens);
-}
-
-void	print_tokens(t_token *list)
-{
-	while (list)
-	{
-		printf("TOKEN: %-10s TYPE: %d\n", list->value, list->type);
-		list = list->next;
-	}
 }

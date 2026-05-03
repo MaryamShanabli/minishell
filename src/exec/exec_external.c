@@ -6,11 +6,50 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/02 22:18:55 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/02 22:44:14 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:12:11 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+int	child_status(int cmd_status)
+{
+	int	status;
+
+	status = 1;
+	if (WIFEXITED(cmd_status))
+		status = WEXITSTATUS(cmd_status);
+	else if (WIFSIGNALED(cmd_status))
+	{
+		if (WTERMSIG(cmd_status) == SIGQUIT)
+			write(2, "Quit\n", 5);
+		else if (WTERMSIG(cmd_status) == SIGINT)
+			write(2, "\n", 1);
+		status = 128 + WTERMSIG(cmd_status);
+	}
+	return (status);
+}
+
+int	exec_no_argv(t_cmd *cmd, t_shell *shell)
+{
+	int	status;
+
+	if ((!cmd->argv || !cmd->argv[0]) && cmd->redirs)
+	{
+		status = execute_redir_only(cmd);
+		if (status)
+			return (status);
+		if (cmd->next)
+		{
+			status = execute_pipeline(cmd->next, shell);
+			return (status);
+		}
+		return (0);
+	}
+	if (!cmd->argv || !cmd->argv[0])
+		return (shell->last_status);
+	return (-1);
+}
 
 void	child_reset_signals(void)
 {
@@ -23,26 +62,16 @@ void	child_reset_signals(void)
 	sigaction(SIGQUIT, &sa, NULL);
 }
 
-int	execute_external(t_cmd *cmd, t_shell *shell)
+static int	fork_and_exec(t_cmd *cmd, t_shell *shell)
 {
-	pid_t				pid;
-	int					cmd_status;
-	struct sigaction	sa_ign;
-	struct sigaction	old_sa_int;
-	struct sigaction	old_sa_quit;
+	pid_t	pid;
+	int		cmd_status;
 
-	sigemptyset(&sa_ign.sa_mask);
-	sa_ign.sa_flags = 0;
-	sa_ign.sa_handler = SIG_IGN;
-	sigaction(SIGINT, &sa_ign, &old_sa_int);
-	sigaction(SIGQUIT, &sa_ign, &old_sa_quit);
 	pid = fork();
 	if (pid == -1)
 	{
 		perror("fork");
-		sigaction(SIGINT, &old_sa_int, NULL);
-		sigaction(SIGQUIT, &old_sa_quit, NULL);
-		return (1);
+		return (-1);
 	}
 	if (pid == 0)
 	{
@@ -52,7 +81,21 @@ int	execute_external(t_cmd *cmd, t_shell *shell)
 		exec_child(cmd, shell);
 	}
 	waitpid(pid, &cmd_status, 0);
+	return (child_status(cmd_status));
+}
+
+int	execute_external(t_cmd *cmd, t_shell *shell)
+{
+	int					status;
+	struct sigaction	sa_ign;
+	struct sigaction	old_sa_int;
+	struct sigaction	old_sa_quit;
+
+	pipe_sig_setup(&sa_ign, &old_sa_int, &old_sa_quit);
+	status = fork_and_exec(cmd, shell);
 	sigaction(SIGINT, &old_sa_int, NULL);
 	sigaction(SIGQUIT, &old_sa_quit, NULL);
-	return (child_status(cmd_status));
+	if (status == -1)
+		return (1);
+	return (status);
 }

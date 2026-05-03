@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:13:06 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 15:58:48 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:26:11 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ static int	dollar_special(const char *in, size_t *pos, t_expbuf *out,
 	}
 	if (in[*pos + 1] == '?')
 	{
-		snprintf(nbr, sizeof(nbr), "%d", shell->last_status);
+		ft_itoa_buf(shell->last_status, nbr);
 		*pos += 2;
 		err = append_str(out, nbr);
 		return (err);

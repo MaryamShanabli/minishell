@@ -6,25 +6,24 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 18:00:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/02 17:29:24 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:18:10 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void	init_cmd(t_cmd *cmd)
+static void	transfer_redirs(t_cmd *curr, t_cmd *next)
 {
-	cmd->argv = NULL;
-	cmd->redirs = NULL;
-	cmd->is_builtin = 0;
-	cmd->pid = 0;
-	cmd->next = NULL;
-}
-
-static int	syntax_pipe_error(void)
-{
-	error_msg(2, "syntax error near unexpected token", NULL, "`|'");
-	return (0);
+	if (next->redirs && !curr->redirs)
+		curr->redirs = next->redirs;
+	else if (next->redirs && next->next && !next->next->redirs)
+		next->next->redirs = next->redirs;
+	else if (next->redirs)
+	{
+		free_redirs(next->redirs);
+		next->redirs = NULL;
+	}
+	next->redirs = NULL;
 }
 
 static void	unlink_empty_commands(t_cmd *first)
@@ -40,16 +39,7 @@ static void	unlink_empty_commands(t_cmd *first)
 		next = curr->next;
 		if (!next->argv || !next->argv[0])
 		{
-			if (next->redirs && !curr->redirs)
-				curr->redirs = next->redirs;
-			else if (next->redirs && next->next && !next->next->redirs)
-				next->next->redirs = next->redirs;
-			else if (next->redirs)
-			{
-				free_redirs(next->redirs);
-				next->redirs = NULL;
-			}
-			next->redirs = NULL;
+			transfer_redirs(curr, next);
 			curr->next = next->next;
 			free(next);
 			next = curr->next;
@@ -57,6 +47,15 @@ static void	unlink_empty_commands(t_cmd *first)
 		else
 			curr = next;
 	}
+}
+
+static int	handle_token_error(char **argv, int status)
+{
+	if (argv)
+		dfree(argv);
+	if (status == 2)
+		syntax_pipe_error();
+	return (0);
 }
 
 static int	build_command_from_tokens(t_token *tokens, t_cmd *cmd,
@@ -72,13 +71,7 @@ static int	build_command_from_tokens(t_token *tokens, t_cmd *cmd,
 	{
 		status = handle_token(&it, &current, &argv, argc);
 		if (status <= 0 || status == 2)
-		{
-			if (argv)
-				dfree(argv);
-			if (status == 2)
-				syntax_pipe_error();
-			return (0);
-		}
+			return (handle_token_error(argv, status));
 	}
 	if (*argc == 0 && cmd->next)
 	{

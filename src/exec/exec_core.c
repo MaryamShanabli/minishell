@@ -6,30 +6,11 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:49 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 16:11:43 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:26:11 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-#include <sys/stat.h>
-
-int	child_status(int cmd_status)
-{
-	int	status;
-
-	status = 1;
-	if (WIFEXITED(cmd_status))
-		status = WEXITSTATUS(cmd_status);
-	else if (WIFSIGNALED(cmd_status))
-	{
-		if (WTERMSIG(cmd_status) == SIGQUIT)
-			write(2, "Quit\n", 5);
-		else if (WTERMSIG(cmd_status) == SIGINT)
-			write(2, "\n", 1);
-		status = 128 + WTERMSIG(cmd_status);
-	}
-	return (status);
-}
 
 static int	exec_no_argv(t_cmd *cmd, t_shell *shell)
 {
@@ -72,22 +53,11 @@ static void	exec_slash_path(t_cmd *cmd, t_shell *shell)
 	exit(126);
 }
 
-void	exec_child(t_cmd *cmd, t_shell *shell)
+static void	exec_path_lookup(t_cmd *cmd, t_shell *shell)
 {
 	char	*path;
 	int		saved_errno;
 
-	if (ft_strcmp(cmd->argv[0], ".") == 0)
-	{
-		write(2, "./minishell: .: filename argument required\n", 43);
-		write(2, "./minishell: .: usage: . filename [arguments]\n", 47);
-		exit(2);
-	}
-	if (ft_strchr(cmd->argv[0], '/'))
-	{
-		exec_slash_path(cmd, shell);
-		return ;
-	}
 	path = get_path(cmd->argv[0], shell);
 	if (!path)
 	{
@@ -101,6 +71,18 @@ void	exec_child(t_cmd *cmd, t_shell *shell)
 	if (saved_errno == ENOENT)
 		exit(127);
 	exit(126);
+}
+
+void	exec_child(t_cmd *cmd, t_shell *shell)
+{
+	if (ft_strcmp(cmd->argv[0], ".") == 0)
+		exec_dot_error();
+	if (ft_strchr(cmd->argv[0], '/'))
+	{
+		exec_slash_path(cmd, shell);
+		return ;
+	}
+	exec_path_lookup(cmd, shell);
 }
 
 int	execute(t_cmd *cmd, t_shell *shell)

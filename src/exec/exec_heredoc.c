@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 17:40:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 16:08:41 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:26:11 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,84 +68,69 @@ static int	heredoc_status(int wait_status, int read_fd)
 	return (0);
 }
 
-static int	heredoc_setup(int fd[2], pid_t *pid, void (**old_int)(int),
-	void (**old_quit)(int))
-{
-	if (pipe(fd) == -1)
-	{
-		perror("pipe");
-		return (1);
-	}
-	*old_int = signal(SIGINT, SIG_IGN);
-	*old_quit = signal(SIGQUIT, SIG_IGN);
-	*pid = fork();
-	if (*pid == -1)
-	{
-		signal(SIGINT, *old_int);
-		signal(SIGQUIT, *old_quit);
-		close(fd[0]);
-		close(fd[1]);
-		perror("fork");
-		return (1);
-	}
-	return (0);
-}
-
-static int	heredoc_finish(pid_t pid, int fd[2], void (*old_int)(int),
-	void (*old_quit)(int), struct termios *old_term)
+static int	hd_wait_and_restore(t_hd_finish *ctx)
 {
 	int	status;
 
-	close(fd[1]);
-	while (waitpid(pid, &status, 0) == -1)
+	close(ctx->fd[1]);
+	while (waitpid(ctx->pid, &status, 0) == -1)
 	{
 		if (errno != EINTR)
 		{
-			signal(SIGINT, old_int);
-			signal(SIGQUIT, old_quit);
-			close(fd[0]);
+			signal(SIGINT, ctx->old_int);
+			signal(SIGQUIT, ctx->old_quit);
+			close(ctx->fd[0]);
 			perror("waitpid");
-			return (1);
+			return (-1);
 		}
 	}
-	signal(SIGINT, old_int);
-	signal(SIGQUIT, old_quit);
-	status = heredoc_status(status, fd[0]);
-	if (old_term && tcsetattr(STDIN_FILENO, TCSANOW, old_term) == -1)
-		perror("tcsetattr");
-	if (status)
-		return (status);
-	if (dup2(fd[0], STDIN_FILENO) == -1)
+	signal(SIGINT, ctx->old_int);
+	signal(SIGQUIT, ctx->old_quit);
+	tcsetattr(STDIN_FILENO, TCSANOW, &ctx->old_term);
+	return (heredoc_status(status, ctx->fd[0]));
+}
+
+static int	hd_dup_stdin(int read_fd)
+{
+	if (dup2(read_fd, STDIN_FILENO) == -1)
 	{
-		close(fd[0]);
+		close(read_fd);
 		perror("dup2");
 		return (1);
 	}
-	close(fd[0]);
+	close(read_fd);
 	return (0);
 }
 
 int	do_heredoc(const char *delim, t_shell *shell)
 {
-	int		fd[2];
-	pid_t	pid;
-	int		status;
-	void	(*old_int)(int);
-	void	(*old_quit)(int);
-	struct termios	old_term;
+	t_hd_finish	ctx;
+	int			status;
 
-	if (tcgetattr(STDIN_FILENO, &old_term) == -1)
-		memset(&old_term, 0, sizeof(old_term));
-	status = heredoc_setup(fd, &pid, &old_int, &old_quit);
-	if (status)
-		return (status);
-	if (pid == 0)
+	if (tcgetattr(STDIN_FILENO, &ctx.old_term) == -1)
+		ft_bzero(&ctx.old_term, sizeof(ctx.old_term));
+	if (pipe(ctx.fd) == -1)
+		return (1);
+	ctx.old_int = signal(SIGINT, SIG_IGN);
+	ctx.old_quit = signal(SIGQUIT, SIG_IGN);
+	ctx.pid = fork();
+	if (ctx.pid == -1)
+	{
+		signal(SIGINT, ctx.old_int);
+		signal(SIGQUIT, ctx.old_quit);
+		close(ctx.fd[0]);
+		close(ctx.fd[1]);
+		return (1);
+	}
+	if (ctx.pid == 0)
 	{
 		signal(SIGINT, SIG_DFL);
 		signal(SIGQUIT, SIG_IGN);
-		close(fd[0]);
-		heredoc_loop(fd[1], delim, shell);
+		close(ctx.fd[0]);
+		heredoc_loop(ctx.fd[1], delim, shell);
 	}
-	status = heredoc_finish(pid, fd, old_int, old_quit, &old_term);
-	return (status);
+	status = hd_wait_and_restore(&ctx);
+	if (status)
+		return (status);
+	return (hd_dup_stdin(ctx.fd[0]));
 }

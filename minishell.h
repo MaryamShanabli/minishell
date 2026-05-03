@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:40:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/03 16:11:38 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/03 18:26:11 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 # include <sys/types.h>
 # include <sys/wait.h>
 # include <unistd.h>
-#include <sys/stat.h>
+# include <sys/stat.h>
 
 extern volatile sig_atomic_t	g_signal;
 
@@ -103,6 +103,15 @@ typedef struct s_expand_state
 	int		in_double;
 }	t_expand_state;
 
+typedef struct s_hd_finish
+{
+	pid_t			pid;
+	int				*fd;
+	void			(*old_int)(int);
+	void			(*old_quit)(int);
+	struct termios	*old_term;
+}	t_hd_finish;
+
 char	**ft_split(char const *s, char c);
 char	*ft_strdup(const char *s);
 char	*ft_strjoin(const char *s1, const char *s2);
@@ -113,15 +122,20 @@ int		ft_strcmp(const char *s1, const char *s2);
 void	dfree(char **arr);
 int		is_valid(const char *s);
 long	ft_atol(const char *s);
+void	ft_bzero(void *s, size_t n);
+void	ft_itoa_buf(int n, char *buf);
 
 int		key_match(const char *entry, const char *key);
 char	**env_dup(char **src);
 char	*env_get(char **env, const char *key);
 int		env_set(char ***env, const char *key, const char *value);
 int		env_unset(char ***env, const char *key);
+int		count_env(char **env);
 
 int		error_msg(int status, const char *cmd,
 			const char *arg, const char *msg);
+int		syntax_pipe_error(void);
+void	exec_dot_error(void);
 
 int		is_builtin(char *name);
 int		execute_builtin(t_cmd *cmd, t_shell *shell);
@@ -145,6 +159,10 @@ int		apply_redirections(t_cmd *cmd, t_shell *shell);
 int		do_heredoc(const char *delim, t_shell *shell);
 void	child_reset_signals(void);
 int		child_status(int cmd_status);
+int		exec_no_argv(t_cmd *cmd, t_shell *shell);
+void	pipe_child(t_cmd *cmd, t_exec *exec, t_shell *shell);
+void	pipe_sig_setup(struct sigaction *sa_ign, struct sigaction *old_int,
+			struct sigaction *old_quit);
 
 t_token	*lexer(char *line);
 char	*read_word(char *line, int *i);
@@ -152,13 +170,14 @@ int		add_operator_token(char *line, int *i, t_token **tokens,
 			int *first_word);
 int		add_word_token(char *line, int *i, t_token **tokens,
 			int *first_word);
-void	print_tokens(t_token *list);
 
 char	*expand_one(const char *str, t_shell *shell);
 int		append_str(t_expbuf *out, const char *s);
 int		read_name(const char *in, size_t *pos, char *name);
 void	expand_variables(t_token *tokens, t_shell *shell);
 int		append_char(t_expbuf *out, char c);
+void	update_shlvl(t_shell *shell);
+void	update_shlvl(t_shell *shell);
 
 void	init_cmd(t_cmd *cmd);
 t_cmd	process_input(char *input, t_shell *shell);
@@ -169,5 +188,6 @@ int		handle_token(t_token **it, t_cmd **current, char ***argv, int *argc);
 void	free_tokens(t_token *tokens);
 void	free_cmd_list(t_cmd *cmd);
 void	free_redirs(t_redir *redirs);
+void	handle_eof(int status);
 
 #endif
