@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 16:30:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 16:33:25 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/04 16:47:46 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,11 @@ static char	*make_entry(const char *key, const char *value)
 {
 	char	*tmp;
 	char	*entry;
-	char	*dup;
 
 	if (!value)
 	{
-		dup = ft_strdup(key);
-		return (dup);
+		entry = ft_strdup(key);
+		return (entry);
 	}
 	tmp = ft_strjoin(key, "=");
 	if (!tmp)

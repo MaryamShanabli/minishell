@@ -6,33 +6,43 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/03 18:19:06 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/04 14:23:04 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static int	append_arg(char ***argv, int *argc, const char *value)
+static char	**realloc_argv(char **old, int argc)
 {
 	char	**new_argv;
 	int		i;
 
-	new_argv = malloc(sizeof(char *) * (*argc + 3));
+	new_argv = malloc(sizeof(char *) * (argc + 3));
 	if (!new_argv)
-		return (0);
+		return (NULL);
 	i = 0;
-	while (i < *argc + 3)
+	while (i < argc + 3)
 		new_argv[i++] = NULL;
-	if (*argv)
+	if (old)
 	{
 		i = 0;
-		while (i < *argc)
+		while (i < argc)
 		{
-			new_argv[i] = (*argv)[i];
+			new_argv[i] = old[i];
 			i++;
 		}
-		free(*argv);
+		free(old);
 	}
+	return (new_argv);
+}
+
+static int	append_arg(char ***argv, int *argc, const char *value)
+{
+	char	**new_argv;
+
+	new_argv = realloc_argv(*argv, *argc);
+	if (!new_argv)
+		return (0);
 	*argv = new_argv;
 	(*argv)[*argc] = ft_strdup(value);
 	if (!(*argv)[*argc])
@@ -82,7 +92,10 @@ int	handle_token(t_token **it, t_cmd **current, char ***argv, int *argc)
 	int	status;
 
 	if ((*it)->type == T_COMMAND || (*it)->type == T_ARG)
-		return (handle_word_token(it, argv, argc));
+	{
+		status = handle_word_token(it, argv, argc);
+		return (status);
+	}
 	else if (is_redir_token((*it)->type))
 	{
 		if (!parse_redirection(*current, it))

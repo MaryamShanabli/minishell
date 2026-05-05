@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:52 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 18:17:00 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/04 20:21:08 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,13 @@ static char	*trim_ifs_edges(const char *s)
 	size_t	start;
 	size_t	end;
 	char	*out;
+	char	*empty;
 
 	if (!s)
-		return (ft_strdup(""));
+	{
+		empty = ft_strdup("");
+		return (empty);
+	}
 	start = 0;
 	while (s[start] == ' ' || s[start] == '\t' || s[start] == '\n')
 		start++;
@@ -77,8 +81,23 @@ static int	expand_token(t_token *tok, t_shell *shell)
 
 void	expand_variables(t_token *tokens, t_shell *shell)
 {
+	int	skip_next;
+
+	skip_next = 0;
 	while (tokens)
 	{
+		if (tokens->type == T_HEREDOC)
+		{
+			skip_next = 1;
+			tokens = tokens->next;
+			continue ;
+		}
+		if (skip_next)
+		{
+			skip_next = 0;
+			tokens = tokens->next;
+			continue ;
+		}
 		if (tokens->type == T_COMMAND || tokens->type == T_ARG)
 		{
 			if (!expand_token(tokens, shell))

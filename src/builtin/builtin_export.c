@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/02 22:26:56 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 18:07:42 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/04 20:31:05 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,9 @@ static int	export_print_all(t_shell *shell)
 	int		n;
 	int		i;
 
-	n = count_env(shell->env);
+	n = 0;
+	while (shell->env && shell->env[n])
+		n++;
 	sorted = malloc(sizeof(char *) * (n + 1));
 	if (!sorted)
 		return (1);
@@ -103,9 +105,13 @@ int	builtin_export(t_cmd *cmd, t_shell *shell)
 {
 	int	status;
 	int	i;
+	int	ret;
 
 	if (!cmd->argv[1])
-		return (export_print_all(shell));
+	{
+		ret = export_print_all(shell);
+		return (ret);
+	}
 	status = 0;
 	i = 1;
 	while (cmd->argv[i])

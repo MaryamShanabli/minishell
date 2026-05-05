@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/02 22:18:55 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 18:38:15 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/04 17:08:24 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ static int	fork_and_exec(t_cmd *cmd, t_shell *shell)
 {
 	pid_t	pid;
 	int		cmd_status;
+	int		status;
 
 	pid = fork();
 	if (pid == -1)
@@ -60,20 +61,28 @@ static int	fork_and_exec(t_cmd *cmd, t_shell *shell)
 		exec_child(cmd, shell);
 	}
 	waitpid(pid, &cmd_status, 0);
-	return (child_status(cmd_status));
+	status = child_status(cmd_status);
+	return (status);
+}
+
+void	pipe_sig_setup(t_pipe_sig *sig)
+{
+	sigemptyset(&sig->sa_ign.sa_mask);
+	sig->sa_ign.sa_flags = 0;
+	sig->sa_ign.sa_handler = SIG_IGN;
+	sigaction(SIGINT, &sig->sa_ign, &sig->old_int);
+	sigaction(SIGQUIT, &sig->sa_ign, &sig->old_quit);
 }
 
 int	execute_external(t_cmd *cmd, t_shell *shell)
 {
-	int					status;
-	struct sigaction	sa_ign;
-	struct sigaction	old_sa_int;
-	struct sigaction	old_sa_quit;
+	int			status;
+	t_pipe_sig	sig;
 
-	pipe_sig_setup(&sa_ign, &old_sa_int, &old_sa_quit);
+	pipe_sig_setup(&sig);
 	status = fork_and_exec(cmd, shell);
-	sigaction(SIGINT, &old_sa_int, NULL);
-	sigaction(SIGQUIT, &old_sa_quit, NULL);
+	sigaction(SIGINT, &sig.old_int, NULL);
+	sigaction(SIGQUIT, &sig.old_quit, NULL);
 	if (status == -1)
 		return (1);
 	return (status);

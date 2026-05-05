@@ -6,45 +6,11 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 17:40:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 18:26:11 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/04 20:21:08 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
-#include <termios.h>
-
-static void	heredoc_loop(int write_fd, const char *delim, t_shell *shell)
-{
-	char	*line;
-	char	*expanded;
-
-	while (1)
-	{
-		line = readline("> ");
-		if (!line)
-		{
-			close(write_fd);
-			_exit(1);
-		}
-		if (!ft_strcmp(line, delim))
-		{
-			free(line);
-			break ;
-		}
-		expanded = expand_one(line, shell);
-		free(line);
-		if (!expanded)
-		{
-			close(write_fd);
-			_exit(1);
-		}
-		write(write_fd, expanded, ft_strlen(expanded));
-		write(write_fd, "\n", 1);
-		free(expanded);
-	}
-	close(write_fd);
-	_exit(0);
-}
 
 static int	heredoc_status(int wait_status, int read_fd)
 {
@@ -70,10 +36,11 @@ static int	heredoc_status(int wait_status, int read_fd)
 
 static int	hd_wait_and_restore(t_hd_finish *ctx)
 {
+	int	wait_status;
 	int	status;
 
 	close(ctx->fd[1]);
-	while (waitpid(ctx->pid, &status, 0) == -1)
+	while (waitpid(ctx->pid, &wait_status, 0) == -1)
 	{
 		if (errno != EINTR)
 		{
@@ -87,7 +54,8 @@ static int	hd_wait_and_restore(t_hd_finish *ctx)
 	signal(SIGINT, ctx->old_int);
 	signal(SIGQUIT, ctx->old_quit);
 	tcsetattr(STDIN_FILENO, TCSANOW, &ctx->old_term);
-	return (heredoc_status(status, ctx->fd[0]));
+	status = heredoc_status(wait_status, ctx->fd[0]);
+	return (status);
 }
 
 static int	hd_dup_stdin(int read_fd)
@@ -102,7 +70,29 @@ static int	hd_dup_stdin(int read_fd)
 	return (0);
 }
 
-int	do_heredoc(const char *delim, t_shell *shell)
+static int	hd_fork(t_hd_finish *ctx, const char *delim, t_shell *shell,
+			int expand)
+{
+	ctx->pid = fork();
+	if (ctx->pid == -1)
+	{
+		signal(SIGINT, ctx->old_int);
+		signal(SIGQUIT, ctx->old_quit);
+		close(ctx->fd[0]);
+		close(ctx->fd[1]);
+		return (1);
+	}
+	if (ctx->pid == 0)
+	{
+		signal(SIGINT, SIG_DFL);
+		signal(SIGQUIT, SIG_IGN);
+		close(ctx->fd[0]);
+		heredoc_loop(ctx->fd[1], delim, shell, expand);
+	}
+	return (0);
+}
+
+int	do_heredoc(const char *delim, t_shell *shell, int expand)
 {
 	t_hd_finish	ctx;
 	int			status;
@@ -113,24 +103,11 @@ int	do_heredoc(const char *delim, t_shell *shell)
 		return (1);
 	ctx.old_int = signal(SIGINT, SIG_IGN);
 	ctx.old_quit = signal(SIGQUIT, SIG_IGN);
-	ctx.pid = fork();
-	if (ctx.pid == -1)
-	{
-		signal(SIGINT, ctx.old_int);
-		signal(SIGQUIT, ctx.old_quit);
-		close(ctx.fd[0]);
-		close(ctx.fd[1]);
+	if (hd_fork(&ctx, delim, shell, expand))
 		return (1);
-	}
-	if (ctx.pid == 0)
-	{
-		signal(SIGINT, SIG_DFL);
-		signal(SIGQUIT, SIG_IGN);
-		close(ctx.fd[0]);
-		heredoc_loop(ctx.fd[1], delim, shell);
-	}
 	status = hd_wait_and_restore(&ctx);
 	if (status)
 		return (status);
-	return (hd_dup_stdin(ctx.fd[0]));
+	status = hd_dup_stdin(ctx.fd[0]);
+	return (status);
 }

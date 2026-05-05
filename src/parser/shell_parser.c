@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 18:00:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/03 18:18:10 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/04 21:54:47 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ static int	handle_token_error(char **argv, int status)
 	if (argv)
 		dfree(argv);
 	if (status == 2)
-		syntax_pipe_error();
+		syntax_token_error("|");
 	return (0);
 }
 
@@ -71,13 +71,16 @@ static int	build_command_from_tokens(t_token *tokens, t_cmd *cmd,
 	{
 		status = handle_token(&it, &current, &argv, argc);
 		if (status <= 0 || status == 2)
-			return (handle_token_error(argv, status));
+		{
+			status = handle_token_error(argv, status);
+			return (status);
+		}
 	}
 	if (*argc == 0 && cmd->next)
 	{
 		if (argv)
 			dfree(argv);
-		syntax_pipe_error();
+		syntax_token_error("|");
 		return (0);
 	}
 	current->argv = argv;

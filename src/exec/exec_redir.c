@@ -6,50 +6,59 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:14:33 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 18:34:05 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/05 03:10:49 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static int	dup_or_fail(int fd, t_redir_type type)
+static int	open_redir_fd(t_redir *redir)
 {
-	int	status;
+	int	fd;
+	int	flags;
 
-	status = 0;
-	if (type == R_IN && dup2(fd, STDIN_FILENO) == -1)
-		status = 1;
-	if ((type == R_OUT || type == R_APPEND)
-		&& dup2(fd, STDOUT_FILENO) == -1)
-		status = 1;
-	if (status)
+	if (redir->type == R_IN)
+		fd = open(redir->target, O_RDONLY);
+	else
 	{
-		perror("dup2");
-		return (1);
+		flags = O_WRONLY | O_CREAT;
+		if (redir->type == R_OUT)
+			flags |= O_TRUNC;
+		else
+			flags |= O_APPEND;
+		fd = open(redir->target, flags, 0644);
 	}
-	return (0);
+	if (fd == -1)
+		error_msg(1, redir->target, NULL, strerror(errno));
+	return (fd);
 }
 
 static int	do_one_redir(t_redir *redir)
 {
 	int	fd;
-	int	status;
+	int	target;
 
-	if (redir->type == R_IN)
-		fd = open(redir->target, O_RDONLY);
-	else if (redir->type == R_OUT)
-		fd = open(redir->target, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-	else
-		fd = open(redir->target, O_WRONLY | O_CREAT | O_APPEND, 0644);
-	if (fd == -1)
+	if (!redir->target || !redir->target[0])
 	{
-		error_msg(1, redir->target, NULL, strerror(errno));
+		if (redir->target_was_unquoted_var)
+			write(2, "minishell: ambiguous redirect\n", 30);
+		else
+			error_msg(1, "", NULL, "No such file or directory");
 		return (1);
 	}
-	status = dup_or_fail(fd, redir->type);
-	close(fd);
-	if (status)
+	fd = open_redir_fd(redir);
+	if (fd == -1)
 		return (1);
+	target = STDOUT_FILENO;
+	if (redir->type == R_IN)
+		target = STDIN_FILENO;
+	if (dup2(fd, target) == -1)
+	{
+		perror("dup2");
+		close(fd);
+		return (1);
+	}
+	close(fd);
 	return (0);
 }
 
@@ -75,7 +84,8 @@ static int	apply_loop(t_redir *redir, int base_stdin, t_shell *shell)
 		if (!status)
 		{
 			if (redir->type == R_HEREDOC)
-				status = do_heredoc(redir->target, shell);
+				status = do_heredoc(redir->target, shell,
+						redir->heredoc_expand);
 			else
 				status = do_one_redir(redir);
 		}

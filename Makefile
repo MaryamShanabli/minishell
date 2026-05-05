@@ -4,38 +4,39 @@ CC = cc
 CFLAGS = -Wall -Wextra -Werror -I.
 
 SRC = src/core/main.c \
+	src/core/main_shlvl.c \
 	src/exec/exec_core.c \
 	src/exec/exec_builtin.c \
 	src/exec/exec_path.c \
 	src/exec/exec_heredoc.c \
 	src/exec/exec_redir.c \
 	src/exec/exec_pipe.c \
-	src/exec/exec_child.c \
+	src/exec/exec_pipe_child.c \
 	src/exec/exec_external.c \
+	src/exec/exec_heredoc_loop.c \
 	src/builtin/builtin_io.c \
 	src/builtin/builtin_state.c \
 	src/builtin/builtin_export.c \
-	src/builtin/builtin_unset.c \
 	src/builtin/builtin_exit.c \
 	src/utils/error_msg.c \
 	src/parser/token_lexer.c \
 	src/parser/token_builder.c \
 	src/parser/shell_loop.c \
+	src/parser/shell_loop_core.c \
+	src/parser/shell_loop_utils.c \
 	src/parser/shell_redir.c \
+	src/parser/shell_redir_utils.c \
 	src/parser/shell_tokens.c \
 	src/parser/shell_parser.c \
 	src/parser/shell_memory.c \
-	src/parser/shell_shlvl.c \
-	src/expand/expand_append.c \
-	src/expand/expand_name.c \
+	src/expand/expand_utils.c \
 	src/expand/expand_one.c \
 	src/expand/expand_var.c \
 	src/env/env_set.c \
 	src/env/env_utils.c \
 	src/utils/libft_split.c \
 	src/utils/libft_memory.c \
-	src/utils/libft_string.c \
-	src/utils/libft_itoa.c
+	src/utils/libft_string.c
 OBJ = $(SRC:.c=.o)
 
 all: $(NAME)

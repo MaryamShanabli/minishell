@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:55 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/25 14:39:44 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/05 02:53:56 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,12 @@ static char	*find_cmd_path(char **paths, char *cmd)
 	while (paths[i])
 	{
 		tmp = ft_strjoin(paths[i], "/");
+		if (!tmp)
+			return (NULL);
 		full = ft_strjoin(tmp, cmd);
 		free(tmp);
+		if (!full)
+			return (NULL);
 		if (is_executable_file(full))
 			return (full);
 		free(full);
@@ -48,19 +52,17 @@ static char	*find_cmd_path(char **paths, char *cmd)
 
 char	*get_path(char *cmd, t_shell *shell)
 {
-	char			*env;
-	char			**paths;
-	char			*full;
-	char			*path_src;
-	const char		*default_path;
+	char	*env;
+	char	**paths;
+	char	*full;
+	char	*path_src;
 
-	default_path = "/usr/local/sbin:/usr/local/bin:/usr/sbin:"
-		"/usr/bin:/sbin:/bin";
 	env = env_get(shell->env, "PATH");
-	if (!env || !*env)
-		path_src = (char *)default_path;
-	else
-		path_src = env;
+	if (!env)
+		return (ft_strdup(cmd));
+	if (!*env)
+		return (ft_strdup(cmd));
+	path_src = env;
 	paths = ft_split(path_src, ':');
 	if (!paths)
 		return (NULL);

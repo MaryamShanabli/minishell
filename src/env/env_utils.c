@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:38 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 18:07:57 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/04 14:33:33 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,19 +26,11 @@ int	key_match(const char *entry, const char *key)
 	return (0);
 }
 
-char	**env_dup(char **src)
+static char	**env_dup_fill(char **src, char **dup, int count)
 {
-	int		count;
-	int		i;
-	char	**dup;
 	char	*item;
+	int		i;
 
-	count = 0;
-	while (src && src[count])
-		count++;
-	dup = malloc(sizeof(char *) * (count + 1));
-	if (!dup)
-		return (NULL);
 	i = 0;
 	while (i < count)
 	{
@@ -52,6 +44,21 @@ char	**env_dup(char **src)
 		i++;
 	}
 	dup[i] = NULL;
+	return (dup);
+}
+
+char	**env_dup(char **src)
+{
+	int		count;
+	char	**dup;
+
+	count = 0;
+	while (src && src[count])
+		count++;
+	dup = malloc(sizeof(char *) * (count + 1));
+	if (!dup)
+		return (NULL);
+	dup = env_dup_fill(src, dup, count);
 	return (dup);
 }
 
@@ -103,14 +110,4 @@ int	env_unset(char ***env, const char *key)
 		i++;
 	}
 	return (0);
-}
-
-int	count_env(char **env)
-{
-	int	i;
-
-	i = 0;
-	while (env && env[i])
-		i++;
-	return (i);
 }

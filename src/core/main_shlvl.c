@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   libft_itoa.c                                       :+:      :+:    :+:   */
+/*   main_shlvl.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/05/03 17:29:46 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 17:46:45 by mshanabl         ###   ########.fr       */
+/*   Created: 2026/05/03 17:24:43 by mshanabl          #+#    #+#             */
+/*   Updated: 2026/05/04 18:35:06 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,22 +30,59 @@ static void	reverse_buf(char *buf, int len)
 	}
 }
 
-void	ft_itoa_buf(int n, char *buf)
+int	itoa_buf(int n, char *buf, int size)
 {
 	int	i;
 
 	i = 0;
+	if (size <= 0)
+		return (0);
 	if (n == 0)
 	{
-		buf[0] = '0';
+		if (size > 1)
+			buf[0] = '0';
 		buf[1] = '\0';
-		return ;
+		return (1);
 	}
-	while (n > 0)
+	while (n > 0 && i < size - 1)
 	{
 		buf[i++] = '0' + (n % 10);
 		n /= 10;
 	}
 	buf[i] = '\0';
 	reverse_buf(buf, i);
+	i = (int)ft_strlen(buf);
+	return (i);
+}
+
+static void	shlvl_warn(int lvl, char *buf)
+{
+	int	len;
+
+	len = itoa_buf(lvl, buf, 8);
+	write(2, "./minishell: warning: shell level (", 35);
+	write(2, buf, (size_t)len);
+	write(2, ") too high, resetting to 1\n", 27);
+}
+
+void	update_shlvl(t_shell *shell)
+{
+	char	*val;
+	int		lvl;
+	char	buf[8];
+
+	val = env_get(shell->env, "SHLVL");
+	if (!val)
+		lvl = 1;
+	else
+		lvl = (int)ft_atol(val) + 1;
+	if (lvl <= 0)
+		lvl = 0;
+	if (lvl >= 1000)
+	{
+		shlvl_warn(lvl, buf);
+		lvl = 1;
+	}
+	itoa_buf(lvl, buf, (int) sizeof(buf));
+	env_set(&shell->env, "SHLVL", buf);
 }

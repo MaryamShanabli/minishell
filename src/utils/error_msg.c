@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:45 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 18:21:40 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/04 21:54:47 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,9 +29,14 @@ int	error_msg(int status, const char *cmd, const char *arg, const char *msg)
 	return (status);
 }
 
-int	syntax_pipe_error(void)
+int	syntax_token_error(const char *token)
 {
-	error_msg(2, "syntax error near unexpected token", NULL, "`|'");
+	if (!token)
+		token = "newline";
+	write(2, "./minishell: syntax error near unexpected token `",
+		ft_strlen("./minishell: syntax error near unexpected token `"));
+	write(2, token, ft_strlen(token));
+	write(2, "'\n", 2);
 	return (0);
 }
 

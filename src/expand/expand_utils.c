@@ -1,16 +1,48 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   expand_name.c                                      :+:      :+:    :+:   */
+/*   expand_utils.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/19 18:28:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/04/19 18:11:54 by mshanabl         ###   ########.fr       */
+/*   Created: 2026/04/19 18:43:00 by mshanabl          #+#    #+#             */
+/*   Updated: 2026/05/04 18:21:13 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+int	append_char(t_expbuf *out, char c)
+{
+	char	*new_buf;
+
+	if (out->used + 1 >= out->cap)
+	{
+		new_buf = malloc(out->cap * 2);
+		if (!new_buf)
+			return (0);
+		ft_strncpy(new_buf, out->buf, out->used);
+		free(out->buf);
+		out->buf = new_buf;
+		out->cap *= 2;
+	}
+	out->buf[out->used++] = c;
+	return (1);
+}
+
+int	append_str(t_expbuf *out, const char *s)
+{
+	size_t	i;
+
+	i = 0;
+	while (s && s[i])
+	{
+		if (!append_char(out, s[i]))
+			return (0);
+		i++;
+	}
+	return (1);
+}
 
 static int	name_start(char c)
 {
@@ -19,7 +51,10 @@ static int	name_start(char c)
 
 static int	name_char(char c)
 {
-	return (name_start(c) || (c >= '0' && c <= '9'));
+	int	r;
+
+	r = name_start(c) || (c >= '0' && c <= '9');
+	return (r);
 }
 
 int	read_name(const char *in, size_t *pos, char *name)
