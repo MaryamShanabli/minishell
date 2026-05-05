@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 12:00:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/04 18:30:42 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/05 05:30:30 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ static void	setup_signals(void)
 {
 	struct sigaction	sa;
 
-	//rl_catch_signals = 0;
+	rl_catch_signals = 0;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 	sa.sa_handler = signal_handler;

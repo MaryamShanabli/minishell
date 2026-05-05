@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:40:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/05 03:04:24 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/05 05:29:29 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,9 +190,9 @@ void	init_cmd(t_cmd *cmd);
 t_cmd	process_input(char *input, t_shell *shell);
 int		interactive_loop(t_shell *shell);
 int		consume_sigint(t_shell *shell);
-int		needs_pipe_continuation(const char *s);
 char	*append_line(char *input, char *next);
 int		read_pipe_continuation(char **input);
+int		read_quote_continuation(char **input);
 int		prompt_loop(t_shell *shell, const char *msg, size_t msg_len);
 int		is_redir_token(t_token_type type);
 int		add_redirection(t_cmd *cmd, t_token_type type,

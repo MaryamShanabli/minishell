@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/05 03:11:44 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/05 05:24:29 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,9 @@ int	parse_redirection(t_cmd *cmd, t_token **it)
 	if (!target || target->type == T_PIPE || is_redir_token(target->type))
 	{
 		tok = NULL;
-		if (target)
+		if (target && is_redir_token(target->type) && target->next)
+			tok = target->next->value;
+		else if (target)
 			tok = target->value;
 		syntax_token_error(tok);
 		return (0);

@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/04 22:30:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/04 21:55:50 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/05 05:30:12 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,8 +59,7 @@ static int	process_line(char *input, t_shell *shell)
 static void	refresh_after_sigint(t_shell *shell)
 {
 	rl_on_new_line();
-	//rl_replace_line("", 0);
-	clear_history();
+	rl_replace_line("", 0);
 	rl_redisplay();
 	consume_sigint(shell);
 }
@@ -70,6 +69,16 @@ static int	handle_input(t_shell *shell, char *input, const char *msg,
 {
 	int	cont;
 
+	cont = read_quote_continuation(&input);
+	if (cont != 0)
+	{
+		if (input)
+			free(input);
+		if (cont == 1)
+			write(2, msg, msg_len);
+		shell->last_status = 2;
+		return (1);
+	}
 	cont = read_pipe_continuation(&input);
 	if (cont != 0)
 	{
@@ -81,9 +90,7 @@ static int	handle_input(t_shell *shell, char *input, const char *msg,
 		return (1);
 	}
 	consume_sigint(shell);
-	if (process_line(input, shell) == 2)
-		return (1);
-	return (0);
+	return (process_line(input, shell) == 2);
 }
 
 int	prompt_loop(t_shell *shell, const char *msg, size_t msg_len)

@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/03 17:50:20 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/05 05:20:51 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,4 +68,22 @@ void	handle_eof(int status)
 	if (isatty(STDIN_FILENO))
 		write(1, "exit\n", 5);
 	(void)status;
+}
+
+char	*append_line(char *input, char *next)
+{
+	char	*tmp;
+	char	*joined;
+
+	tmp = ft_strjoin(input, "\n");
+	free(input);
+	if (!tmp)
+	{
+		free(next);
+		return (NULL);
+	}
+	joined = ft_strjoin(tmp, next);
+	free(tmp);
+	free(next);
+	return (joined);
 }

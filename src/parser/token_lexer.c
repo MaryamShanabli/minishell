@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 16:27:29 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/03 18:26:23 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/05 05:08:50 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@ void	init_cmd(t_cmd *cmd)
 
 static int	is_word_break(char c)
 {
-	return (c == ' ' || c == '\t' || c == '|' || c == '>' || c == '<');
+	return (c == ' ' || c == '\t' || c == '\n'
+		|| c == '|' || c == '>' || c == '<');
 }
 
 static void	advance_word(char *line, int *i, char *quote)
@@ -78,7 +79,7 @@ t_token	*lexer(char *line)
 	first_word = 1;
 	while (line[i])
 	{
-		while (line[i] == ' ' || line[i] == '\t')
+		while (line[i] == ' ' || line[i] == '\t' || line[i] == '\n')
 			i++;
 		if (!line[i])
 			break ;
