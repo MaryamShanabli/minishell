@@ -26,12 +26,14 @@ SRC = src/core/main.c \
 	src/parser/shell_loop_utils.c \
 	src/parser/shell_redir.c \
 	src/parser/shell_redir_utils.c \
+	src/parser/shell_argv.c \
 	src/parser/shell_tokens.c \
 	src/parser/shell_parser.c \
 	src/parser/shell_memory.c \
 	src/expand/expand_utils.c \
 	src/expand/expand_one.c \
 	src/expand/expand_var.c \
+	src/expand/expand_split.c \
 	src/env/env_set.c \
 	src/env/env_utils.c \
 	src/utils/libft_split.c \

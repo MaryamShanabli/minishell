@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:38 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/04 14:33:33 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/12 00:00:00 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ char	**env_dup(char **src)
 	count = 0;
 	while (src && src[count])
 		count++;
-	dup = malloc(sizeof(char *) * (count + 1));
+	dup = calloc(count + 1, sizeof(char *));
 	if (!dup)
 		return (NULL);
 	dup = env_dup_fill(src, dup, count);

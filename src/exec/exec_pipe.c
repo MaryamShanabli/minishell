@@ -6,77 +6,74 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:59 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/04 18:34:18 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/16 12:49:07 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static void	exec_pipe(t_cmd *cmd, t_exec *exec, t_shell *shell)
+static int	wait_one(pid_t last_pid, int *status)
 {
-	cmd->pid = fork();
-	if (cmd->pid == -1)
+	int		ws;
+	pid_t	reaped;
+
+	reaped = waitpid(-1, &ws, 0);
+	if (reaped == -1)
 	{
-		perror("fork");
-		cmd->pid = 0;
-		return ;
+		if (errno == EINTR)
+			return (0);
+		return (-1);
 	}
-	if (cmd->pid == 0)
-		pipe_child(cmd, exec, shell);
-	if (exec->prev_pipe_read != -1)
-		close(exec->prev_pipe_read);
-	exec->prev_pipe_read = -1;
-	if (cmd->next)
+	if (last_pid != -1 && reaped != last_pid)
+		return (0);
+	if (WIFEXITED(ws))
+		*status = WEXITSTATUS(ws);
+	else if (WIFSIGNALED(ws))
 	{
-		close(exec->pipe_fd[1]);
-		exec->prev_pipe_read = exec->pipe_fd[0];
+		if (WTERMSIG(ws) == SIGQUIT && reaped == last_pid)
+			write(2, "Quit\n", 5);
+		*status = 128 + WTERMSIG(ws);
 	}
+	return (0);
 }
 
 static int	wait_pipeline(t_cmd *first)
 {
-	int		cmd_status;
+	pid_t	last;
 	int		status;
-	t_cmd	*cmd;
 
-	cmd = first;
+	last = -1;
 	status = 0;
-	while (cmd)
+	while (first)
 	{
-		if (cmd->pid <= 0 || waitpid(cmd->pid, &cmd_status, 0) == -1)
-			status = 1;
-		else if (WIFEXITED(cmd_status))
-			status = WEXITSTATUS(cmd_status);
-		else if (WIFSIGNALED(cmd_status))
-		{
-			if (cmd->next == NULL && WTERMSIG(cmd_status) == SIGQUIT)
-				write(2, "Quit\n", 5);
-			else if (cmd->next == NULL && WTERMSIG(cmd_status) == SIGINT)
-				write(2, "\n", 1);
-			status = 128 + WTERMSIG(cmd_status);
-		}
-		cmd = cmd->next;
+		if (first->pid > 0)
+			last = first->pid;
+		first = first->next;
 	}
+	while (wait_one(last, &status) != -1)
+		;
+	while (waitpid(-1, NULL, WNOHANG) > 0)
+		;
+	if (g_signal == SIGINT)
+		status = 130;
 	return (status);
 }
 
-static int	run_pipe_loop(t_cmd *cmd, t_cmd *first, t_exec *exec,
-	t_shell *shell)
+static void	pipe_fail(t_exec *exec, t_cmd *first, t_pipe_sig *sig)
 {
-	while (cmd)
-	{
-		if (cmd->next && pipe(exec->pipe_fd) == -1)
-		{
-			perror("pipe");
-			if (exec->prev_pipe_read != -1)
-				close(exec->prev_pipe_read);
-			wait_pipeline(first);
-			return (-1);
-		}
-		exec_pipe(cmd, exec, shell);
-		cmd = cmd->next;
-	}
-	return (0);
+	perror("pipe");
+	if (exec->prev_pipe_read != -1)
+		close(exec->prev_pipe_read);
+	wait_pipeline(first);
+	sigaction(SIGINT, &sig->old_int, NULL);
+	sigaction(SIGQUIT, &sig->old_quit, NULL);
+}
+
+static void	pipeline_cleanup(t_cmd *first, t_pipe_sig *sig)
+{
+	close_heredoc_fds(first);
+	sigaction(SIGINT, &sig->old_int, NULL);
+	sigaction(SIGQUIT, &sig->old_quit, NULL);
 }
 
 int	execute_pipeline(t_cmd *cmd, t_shell *shell)
@@ -92,14 +89,17 @@ int	execute_pipeline(t_cmd *cmd, t_shell *shell)
 	exec.pipe_fd[1] = -1;
 	exec.prev_pipe_read = -1;
 	pipe_sig_setup(&sig);
-	if (run_pipe_loop(cmd, first, &exec, shell) == -1)
+	while (cmd)
 	{
-		sigaction(SIGINT, &sig.old_int, NULL);
-		sigaction(SIGQUIT, &sig.old_quit, NULL);
-		return (1);
+		if (cmd->next && pipe(exec.pipe_fd) == -1)
+		{
+			pipe_fail(&exec, first, &sig);
+			return (1);
+		}
+		exec_pipe(cmd, &exec, shell);
+		cmd = cmd->next;
 	}
-	sigaction(SIGINT, &sig.old_int, NULL);
-	sigaction(SIGQUIT, &sig.old_quit, NULL);
+	pipeline_cleanup(first, &sig);
 	status = wait_pipeline(first);
 	return (status);
 }

@@ -6,45 +6,52 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/04 22:10:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/05 05:23:24 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/16 12:52:56 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static void	scan_pipe_char(char c, char *quote, char *last, int *has_non_pipe)
+static void	scan_pipe_char(char c, t_pipe_scan *scan)
 {
-	if (!*quote && (c == '\'' || c == '"'))
-		*quote = c;
-	else if (*quote && c == *quote)
-		*quote = 0;
-	if (!*quote && c != ' ' && c != '\t' && c != '|' && c != '<' && c != '>')
-		*has_non_pipe = 1;
-	if (c != ' ' && c != '\t')
-		*last = c;
+	if (!scan->quote && (c == '\'' || c == '"'))
+		scan->quote = c;
+	else if (scan->quote && c == scan->quote)
+		scan->quote = 0;
+	if (!scan->quote && c != ' ' && c != '\t' && c != '\n'
+		&& c != '|' && c != '<' && c != '>')
+		scan->has_non_pipe = 1;
+	if (!scan->quote && c != ' ' && c != '\t' && c != '\n')
+	{
+		scan->prev = scan->last;
+		scan->last = c;
+	}
 }
 
 static int	needs_pipe_continuation(const char *s)
 {
-	int		i;
-	int		has_non_pipe;
-	char	quote;
-	char	last;
+	int			i;
+	t_pipe_scan	scan;
 
 	if (!s)
 		return (0);
 	i = 0;
-	has_non_pipe = 0;
-	quote = 0;
-	last = 0;
+	scan.quote = 0;
+	scan.prev = 0;
+	scan.last = 0;
+	scan.has_non_pipe = 0;
 	while (s[i])
 	{
-		scan_pipe_char(s[i], &quote, &last, &has_non_pipe);
+		scan_pipe_char(s[i], &scan);
 		i++;
 	}
-	if (quote)
+	if (scan.quote)
 		return (0);
-	return (last == '|' && has_non_pipe);
+	if (scan.last != '|' || !scan.has_non_pipe)
+		return (0);
+	if (scan.prev == '|')
+		return (0);
+	return (1);
 }
 
 int	read_pipe_continuation(char **input)
@@ -55,7 +62,11 @@ int	read_pipe_continuation(char **input)
 	{
 		next = readline("> ");
 		if (!next)
+		{
+			if (g_signal == SIGINT)
+				return (-1);
 			return (1);
+		}
 		*input = append_line(*input, next);
 		if (!*input)
 			return (-1);
@@ -91,7 +102,11 @@ int	read_quote_continuation(char **input)
 	{
 		next = readline("> ");
 		if (!next)
+		{
+			if (g_signal == SIGINT)
+				return (-1);
 			return (1);
+		}
 		*input = append_line(*input, next);
 		if (!*input)
 			return (-1);

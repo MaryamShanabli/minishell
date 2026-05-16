@@ -59,9 +59,9 @@ char	*get_path(char *cmd, t_shell *shell)
 
 	env = env_get(shell->env, "PATH");
 	if (!env)
-		return (ft_strdup(cmd));
+		return (NULL);
 	if (!*env)
-		return (ft_strdup(cmd));
+		return (NULL);
 	path_src = env;
 	paths = ft_split(path_src, ':');
 	if (!paths)

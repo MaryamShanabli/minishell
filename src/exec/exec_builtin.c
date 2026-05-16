@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 16:45:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 16:11:23 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/12 00:00:00 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ int	execute_builtin(t_cmd *cmd, t_shell *shell)
 		status = builtin_env(cmd, shell);
 	}
 	else if (!ft_strcmp(cmd->argv[0], "exit"))
-		status = builtin_exit(cmd, shell->last_status);
+		status = builtin_exit(cmd, shell);
 	return (status);
 }
 
@@ -77,33 +77,9 @@ int	execute_builtin_with_redir(t_cmd *cmd, t_shell *shell)
 		close(saved_in);
 		return (1);
 	}
-	status = apply_redirections(cmd, shell);
+	status = apply_redirections(cmd);
 	if (!status)
 		status = execute_builtin(cmd, shell);
-	restore_stdio(saved_in, saved_out);
-	return (status);
-}
-
-int	execute_redir_only(t_cmd *cmd, t_shell *shell)
-{
-	int	saved_in;
-	int	saved_out;
-	int	status;
-
-	saved_in = dup(STDIN_FILENO);
-	if (saved_in == -1)
-	{
-		perror("dup");
-		return (1);
-	}
-	saved_out = dup(STDOUT_FILENO);
-	if (saved_out == -1)
-	{
-		perror("dup");
-		close(saved_in);
-		return (1);
-	}
-	status = apply_redirections(cmd, shell);
 	restore_stdio(saved_in, saved_out);
 	return (status);
 }

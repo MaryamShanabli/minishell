@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:40:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/05 05:29:29 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/16 12:54:08 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,6 @@ extern volatile sig_atomic_t	g_signal;
 
 typedef enum e_token_type
 {
-	T_COMMAND,
 	T_ARG,
 	T_FILENAME,
 	T_PIPE,
@@ -73,7 +72,6 @@ typedef struct s_cmd
 {
 	char			**argv;
 	t_redir			*redirs;
-	int				is_builtin;
 	pid_t			pid;
 	struct s_cmd	*next;
 }	t_cmd;
@@ -90,6 +88,8 @@ typedef struct s_shell
 {
 	char	**env;
 	int		last_status;
+	int		should_exit;
+	int		exit_code;
 }	t_shell;
 
 typedef struct s_expbuf
@@ -122,6 +122,14 @@ typedef struct s_pipe_sig
 	struct sigaction	old_quit;
 }	t_pipe_sig;
 
+typedef struct s_pipe_scan
+{
+	char	quote;
+	char	prev;
+	char	last;
+	int		has_non_pipe;
+}	t_pipe_scan;
+
 char	**ft_split(char const *s, char c);
 char	*ft_strdup(const char *s);
 char	*ft_strjoin(const char *s1, const char *s2);
@@ -140,16 +148,15 @@ char	**env_dup(char **src);
 char	*env_get(char **env, const char *key);
 int		env_set(char ***env, const char *key, const char *value);
 int		env_unset(char ***env, const char *key);
+int		env_has(char **env, const char *key);
 
 int		error_msg(int status, const char *cmd,
 			const char *arg, const char *msg);
 int		syntax_token_error(const char *token);
-void	exec_dot_error(void);
 
 int		is_builtin(char *name);
 int		execute_builtin(t_cmd *cmd, t_shell *shell);
 int		execute_builtin_with_redir(t_cmd *cmd, t_shell *shell);
-int		execute_redir_only(t_cmd *cmd, t_shell *shell);
 int		execute_external(t_cmd *cmd, t_shell *shell);
 
 int		builtin_echo(t_cmd *cmd);
@@ -158,14 +165,17 @@ int		builtin_env(t_cmd *cmd, t_shell *shell);
 int		builtin_cd(t_cmd *cmd, t_shell *shell);
 int		builtin_export(t_cmd *cmd, t_shell *shell);
 int		builtin_unset(t_cmd *cmd, t_shell *shell);
-int		builtin_exit(t_cmd *cmd, int status);
+int		builtin_exit(t_cmd *cmd, t_shell *shell);
 
 char	*get_path(char *cmd, t_shell *shell);
 int		execute(t_cmd *cmd, t_shell *shell);
 void	exec_child(t_cmd *cmd, t_shell *shell);
 int		execute_pipeline(t_cmd *cmd, t_shell *shell);
-int		apply_redirections(t_cmd *cmd, t_shell *shell);
-int		do_heredoc(const char *delim, t_shell *shell, int expand);
+void	exec_pipe(t_cmd *cmd, t_exec *exec, t_shell *shell);
+void	close_heredoc_fds(t_cmd *cmd);
+int		apply_redirections(t_cmd *cmd);
+int		preprocess_heredocs(t_cmd *cmd, t_shell *shell);
+int		do_heredoc_pre(t_redir *redir, t_shell *shell);
 void	child_reset_signals(void);
 void	pipe_sig_setup(t_pipe_sig *sig);
 void	heredoc_loop(int write_fd, const char *delim, t_shell *shell,
@@ -174,30 +184,33 @@ void	pipe_child(t_cmd *cmd, t_exec *exec, t_shell *shell);
 
 t_token	*lexer(char *line);
 char	*read_word(char *line, int *i);
-int		add_operator_token(char *line, int *i, t_token **tokens,
-			int *first_word);
-int		add_word_token(char *line, int *i, t_token **tokens,
-			int *first_word);
+int		add_operator_token(char *line, int *i, t_token **tokens);
+int		add_word_token(char *line, int *i, t_token **tokens);
 
 char	*expand_one(const char *str, t_shell *shell);
 int		append_str(t_expbuf *out, const char *s);
 int		read_name(const char *in, size_t *pos, char *name);
-void	expand_variables(t_token *tokens, t_shell *shell);
+void	expand_variables(t_token **head, t_shell *shell);
+t_token	*word_split_token(t_token *tok, t_token *next);
 int		append_char(t_expbuf *out, char c);
 void	update_shlvl(t_shell *shell);
 
 void	init_cmd(t_cmd *cmd);
-t_cmd	process_input(char *input, t_shell *shell);
+t_cmd	*process_input(char *input, t_shell *shell);
 int		interactive_loop(t_shell *shell);
 int		consume_sigint(t_shell *shell);
+void	sigint_display_fix(void);
+int		handle_sigint_empty(t_shell *shell, char *input);
 char	*append_line(char *input, char *next);
 int		read_pipe_continuation(char **input);
 int		read_quote_continuation(char **input);
-int		prompt_loop(t_shell *shell, const char *msg, size_t msg_len);
+int		prompt_loop(t_shell *shell);
 int		is_redir_token(t_token_type type);
 int		add_redirection(t_cmd *cmd, t_token_type type,
 			const char *target, int was_unquoted_var);
 int		parse_redirection(t_cmd *cmd, t_token **it);
+char	**alloc_argv(t_token *it, int *count_out);
+int		count_cmd_args(t_token *it);
 int		handle_token(t_token **it, t_cmd **current, char ***argv, int *argc);
 void	free_tokens(t_token *tokens);
 void	free_cmd_list(t_cmd *cmd);

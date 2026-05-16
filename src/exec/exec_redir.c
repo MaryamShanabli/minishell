@@ -6,11 +6,33 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:14:33 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/05 03:10:49 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/16 12:37:58 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+void	close_heredoc_fds(t_cmd *cmd)
+{
+	t_cmd	*cur;
+	t_redir	*r;
+
+	cur = cmd;
+	while (cur)
+	{
+		r = cur->redirs;
+		while (r)
+		{
+			if (r->type == R_HEREDOC && r->heredoc_fd > 0)
+			{
+				close(r->heredoc_fd);
+				r->heredoc_fd = -1;
+			}
+			r = r->next;
+		}
+		cur = cur->next;
+	}
+}
 
 static int	open_redir_fd(t_redir *redir)
 {
@@ -62,59 +84,37 @@ static int	do_one_redir(t_redir *redir)
 	return (0);
 }
 
-static int	reset_for_heredoc(int base_stdin, t_redir *redir)
+static int	apply_heredoc_redir(t_redir *redir)
 {
-	if (redir->type != R_HEREDOC)
-		return (0);
-	if (dup2(base_stdin, STDIN_FILENO) == -1)
+	if (redir->heredoc_fd < 0)
+		return (1);
+	if (dup2(redir->heredoc_fd, STDIN_FILENO) == -1)
 	{
 		perror("dup2");
 		return (1);
 	}
+	close(redir->heredoc_fd);
+	redir->heredoc_fd = -1;
 	return (0);
 }
 
-static int	apply_loop(t_redir *redir, int base_stdin, t_shell *shell)
+int	apply_redirections(t_cmd *cmd)
 {
-	int	status;
-
-	while (redir)
-	{
-		status = reset_for_heredoc(base_stdin, redir);
-		if (!status)
-		{
-			if (redir->type == R_HEREDOC)
-				status = do_heredoc(redir->target, shell,
-						redir->heredoc_expand);
-			else
-				status = do_one_redir(redir);
-		}
-		if (status)
-			return (status);
-		redir = redir->next;
-	}
-	return (0);
-}
-
-int	apply_redirections(t_cmd *cmd, t_shell *shell)
-{
-	int		base_stdin;
+	t_redir	*redir;
 	int		status;
 
 	if (!cmd)
 		return (1);
-	base_stdin = dup(STDIN_FILENO);
-	if (base_stdin == -1)
+	redir = cmd->redirs;
+	while (redir)
 	{
-		perror("dup");
-		return (1);
+		if (redir->type == R_HEREDOC)
+			status = apply_heredoc_redir(redir);
+		else
+			status = do_one_redir(redir);
+		if (status)
+			return (status);
+		redir = redir->next;
 	}
-	status = apply_loop(cmd->redirs, base_stdin, shell);
-	if (status)
-	{
-		close(base_stdin);
-		return (status);
-	}
-	close(base_stdin);
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/02 22:26:56 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/04 20:31:05 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/12 00:00:00 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,21 +36,25 @@ static int	export_one_arg(char *arg, t_shell *shell)
 	int		err;
 
 	eq_pos = ft_strchr(arg, '=');
-	err = 0;
-	if (!eq_pos && !is_valid(arg))
-		err = error_msg(1, "export", arg, "not a valid identifier");
-	else if (!eq_pos && env_set(&shell->env, arg, NULL))
-		err = 1;
-	else if (eq_pos)
+	if (!eq_pos)
 	{
-		*eq_pos = '\0';
 		if (!is_valid(arg))
-			err = error_msg(1, "export", arg, "not a valid identifier");
-		else if (env_set(&shell->env, arg, eq_pos + 1))
-			err = 1;
-		*eq_pos = '=';
+			return (error_msg(1, "export", arg, "not a valid identifier"));
+		return (!env_has(shell->env, arg)
+			&& env_set(&shell->env, arg, NULL));
 	}
-	return (err);
+	*eq_pos = '\0';
+	if (!is_valid(arg))
+	{
+		if (eq_pos == arg)
+			arg = "`='";
+		err = error_msg(1, "export", arg, "not a valid identifier");
+		*eq_pos = '=';
+		return (err);
+	}
+	err = env_set(&shell->env, arg, eq_pos + 1);
+	*eq_pos = '=';
+	return (err != 0);
 }
 
 static void	print_sorted_env(char **env, int n)
@@ -105,13 +109,9 @@ int	builtin_export(t_cmd *cmd, t_shell *shell)
 {
 	int	status;
 	int	i;
-	int	ret;
 
 	if (!cmd->argv[1])
-	{
-		ret = export_print_all(shell);
-		return (ret);
-	}
+		return (export_print_all(shell));
 	status = 0;
 	i = 1;
 	while (cmd->argv[i])

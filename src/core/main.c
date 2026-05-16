@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 12:00:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/05 05:30:30 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/16 13:23:52 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,12 @@ static void	signal_handler(int signum)
 {
 	g_signal = signum;
 	if (signum == SIGINT)
+	{
 		write(1, "\n", 1);
+		rl_on_new_line();
+		rl_replace_line("", 0);
+		rl_redisplay();
+	}
 }
 
 static void	setup_signals(void)
@@ -36,15 +41,15 @@ static void	setup_signals(void)
 
 static int	run_non_interactive(char *input, t_shell *shell)
 {
-	t_cmd	cmd;
+	t_cmd	*cmd;
 	int		status;
 
 	cmd = process_input(input, shell);
-	if (cmd.pid == -2)
+	if (!cmd)
 		return (2);
-	status = execute(&cmd, shell);
+	status = execute(cmd, shell);
 	shell->last_status = status;
-	free_cmd_list(&cmd);
+	free_cmd_list(cmd);
 	return (status);
 }
 
@@ -57,6 +62,8 @@ int	main(int ac, char **av, char **envp)
 	if (!shell.env)
 		return (1);
 	shell.last_status = 0;
+	shell.should_exit = 0;
+	shell.exit_code = 0;
 	update_shlvl(&shell);
 	setup_signals();
 	if (ac > 1)

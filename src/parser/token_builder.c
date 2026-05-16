@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 16:34:37 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/04 16:21:57 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/12 00:00:00 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,35 +40,31 @@ static t_token	*new_token(char *value, t_token_type type)
 	return (tok);
 }
 
-static void	add_token(t_token **list, t_token *new)
+static void	add_token(t_token **list, t_token *tok)
 {
 	t_token	*tmp;
 
-	if (!new)
+	if (!tok)
 		return ;
 	if (!*list)
 	{
-		*list = new;
+		*list = tok;
 		return ;
 	}
 	tmp = *list;
 	while (tmp->next)
 		tmp = tmp->next;
-	tmp->next = new;
+	tmp->next = tok;
 }
 
-int	add_operator_token(char *line, int *i, t_token **tokens,
-		int *first_word)
+int	add_operator_token(char *line, int *i, t_token **tokens)
 {
 	int		len;
 	t_token	*tok;
 
 	len = operator_len(line, *i);
 	if (line[*i] == '|')
-	{
 		tok = new_token("|", T_PIPE);
-		*first_word = 1;
-	}
 	else if (line[*i] == '>' && len == 2)
 		tok = new_token(">>", T_APPEND);
 	else if (line[*i] == '>')
@@ -84,29 +80,21 @@ int	add_operator_token(char *line, int *i, t_token **tokens,
 	return (1);
 }
 
-int	add_word_token(char *line, int *i, t_token **tokens,
-		int *first_word)
+int	add_word_token(char *line, int *i, t_token **tokens)
 {
-	char			*word;
-	t_token_type	type;
-	t_token			*tok;
+	char	*word;
+	t_token	*tok;
 
 	word = read_word(line, i);
 	if (!word || !word[0])
 	{
-		if (word)
-			free(word);
+		free(word);
 		return (0);
 	}
-	if (*first_word)
-		type = T_COMMAND;
-	else
-		type = T_ARG;
-	tok = new_token(word, type);
+	tok = new_token(word, T_ARG);
 	free(word);
 	if (!tok)
 		return (0);
 	add_token(tokens, tok);
-	*first_word = 0;
 	return (1);
 }

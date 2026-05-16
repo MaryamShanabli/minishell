@@ -6,11 +6,25 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 16:30:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/04 16:47:46 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/12 00:00:00 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+int	env_has(char **env, const char *key)
+{
+	int	i;
+
+	i = 0;
+	while (env && env[i])
+	{
+		if (key_match(env[i], key))
+			return (1);
+		i++;
+	}
+	return (0);
+}
 
 static char	*make_entry(const char *key, const char *value)
 {

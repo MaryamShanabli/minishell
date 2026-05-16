@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/02 22:18:55 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/04 17:08:24 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/12 00:00:00 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ static int	fork_and_exec(t_cmd *cmd, t_shell *shell)
 	if (pid == 0)
 	{
 		child_reset_signals();
-		if (apply_redirections(cmd, shell))
+		if (apply_redirections(cmd))
 			exit(1);
 		exec_child(cmd, shell);
 	}

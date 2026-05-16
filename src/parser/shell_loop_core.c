@@ -6,36 +6,15 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/04 22:30:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/05 05:30:12 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/14 00:00:00 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static int	check_exit_cmd(t_cmd *cmd, t_shell *shell, char *input)
-{
-	int	raw;
-
-	if (cmd->pid == -2 || !cmd->argv || cmd->next)
-		return (-1);
-	if (ft_strcmp(cmd->argv[0], "exit") != 0)
-		return (-1);
-	raw = shell->last_status;
-	if (raw == 256)
-	{
-		shell->last_status = 1;
-		return (0);
-	}
-	if (raw < 0)
-		shell->last_status = -raw;
-	(void)input;
-	return (2);
-}
-
 static int	process_line(char *input, t_shell *shell)
 {
-	t_cmd	cmd;
-	int		ret;
+	t_cmd	*cmd;
 
 	if (!*input)
 	{
@@ -44,79 +23,83 @@ static int	process_line(char *input, t_shell *shell)
 	}
 	add_history(input);
 	cmd = process_input(input, shell);
-	if (cmd.pid == -2)
+	if (!cmd)
 		shell->last_status = 2;
 	else
-		shell->last_status = execute(&cmd, shell);
-	ret = check_exit_cmd(&cmd, shell, input);
-	free_cmd_list(&cmd);
+	{
+		shell->last_status = execute(cmd, shell);
+		free_cmd_list(cmd);
+	}
 	free(input);
-	if (ret >= 0)
-		return (ret);
+	if (shell->should_exit)
+		return (2);
 	return (0);
 }
 
-static void	refresh_after_sigint(t_shell *shell)
+static int	check_continuation(t_shell *shell, char **input)
 {
-	rl_on_new_line();
-	rl_replace_line("", 0);
-	rl_redisplay();
-	consume_sigint(shell);
+	int		cont;
+	char	*err;
+
+	err = "./minishell: syntax error: unexpected end of file\n";
+	cont = read_quote_continuation(input);
+	if (cont == 0)
+		cont = read_pipe_continuation(input);
+	if (cont == -1)
+	{
+		if (*input)
+			free(*input);
+		shell->last_status = 130;
+		return (1);
+	}
+	if (cont != 0)
+	{
+		if (*input)
+			free(*input);
+		write(2, err, ft_strlen(err));
+		shell->last_status = 2;
+		return (1);
+	}
+	return (0);
 }
 
-static int	handle_input(t_shell *shell, char *input, const char *msg,
-		size_t msg_len)
+static int	handle_input(t_shell *shell, char *input)
 {
-	int	cont;
-
-	cont = read_quote_continuation(&input);
-	if (cont != 0)
-	{
-		if (input)
-			free(input);
-		if (cont == 1)
-			write(2, msg, msg_len);
-		shell->last_status = 2;
+	if (check_continuation(shell, &input))
 		return (1);
-	}
-	cont = read_pipe_continuation(&input);
-	if (cont != 0)
-	{
-		if (input)
-			free(input);
-		if (cont == 1)
-			write(2, msg, msg_len);
-		shell->last_status = 2;
-		return (1);
-	}
 	consume_sigint(shell);
 	return (process_line(input, shell) == 2);
 }
 
-int	prompt_loop(t_shell *shell, const char *msg, size_t msg_len)
+static int	handle_null_input(t_shell *shell)
+{
+	if (g_signal == SIGINT)
+		consume_sigint(shell);
+	handle_eof(shell->last_status);
+	return (1);
+}
+
+int	prompt_loop(t_shell *shell)
 {
 	char	*input;
+	int		ret;
 
 	while (1)
 	{
-		if (g_signal == SIGINT)
-			refresh_after_sigint(shell);
 		input = readline("minishell$ ");
 		if (!input)
 		{
-			if (consume_sigint(shell))
+			ret = handle_null_input(shell);
+			if (ret == -1)
 				continue ;
-			handle_eof(shell->last_status);
 			break ;
 		}
-		if (g_signal == SIGINT && !*input)
-		{
-			consume_sigint(shell);
-			free(input);
+		if (handle_sigint_empty(shell, input))
 			continue ;
-		}
-		if (handle_input(shell, input, msg, msg_len))
+		if (handle_input(shell, input) || shell->should_exit)
 			break ;
 	}
+	if (shell->should_exit)
+		return (shell->exit_code);
 	return (shell->last_status);
 }

@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:20:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/05 05:20:51 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/12 00:00:00 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,8 @@ void	free_redirs(t_redir *redirs)
 	while (redirs)
 	{
 		next = redirs->next;
+		if (redirs->heredoc_fd > 0)
+			close(redirs->heredoc_fd);
 		free(redirs->target);
 		free(redirs);
 		redirs = next;
@@ -41,26 +43,17 @@ void	free_redirs(t_redir *redirs)
 void	free_cmd_list(t_cmd *cmd)
 {
 	t_cmd	*next;
-	t_cmd	*node;
 
-	if (!cmd)
-		return ;
-	if (cmd->argv)
-		dfree(cmd->argv);
-	if (cmd->redirs)
-		free_redirs(cmd->redirs);
-	node = cmd->next;
-	while (node)
+	while (cmd)
 	{
-		next = node->next;
-		if (node->argv)
-			dfree(node->argv);
-		if (node->redirs)
-			free_redirs(node->redirs);
-		free(node);
-		node = next;
+		next = cmd->next;
+		if (cmd->argv)
+			dfree(cmd->argv);
+		if (cmd->redirs)
+			free_redirs(cmd->redirs);
+		free(cmd);
+		cmd = next;
 	}
-	cmd->next = NULL;
 }
 
 void	handle_eof(int status)

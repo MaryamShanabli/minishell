@@ -6,97 +6,121 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:20 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/03 15:44:39 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/12 00:00:00 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static int	read_sign(const char *arg, int *i, int *sign)
+static int	skip_sign(const char *s, int *sign)
 {
-	if (!arg || !arg[0])
-		return (0);
-	*i = 0;
+	int	i;
+
+	i = 0;
 	*sign = 1;
-	if (arg[*i] == '+' || arg[*i] == '-')
+	if (s[i] == '+' || s[i] == '-')
 	{
-		if (arg[*i] == '-')
+		if (s[i] == '-')
 			*sign = -1;
-		(*i)++;
-	}
-	if (!arg[*i])
-		return (0);
-	return (1);
-}
-
-static int	read_digits(const char *arg, int i,
-		unsigned long long limit, unsigned long long *acc)
-{
-	int	digit;
-
-	*acc = 0;
-	while (arg[i])
-	{
-		digit = arg[i] - '0';
-		if (digit < 0 || digit > 9)
-			return (0);
-		if (*acc > limit / 10 || (*acc == limit / 10
-				&& (unsigned long long)digit > limit % 10))
-			return (0);
-		*acc = *acc * 10 + (unsigned long long)digit;
 		i++;
 	}
-	return (1);
+	return (i);
 }
 
-static int	parse_exit_code(const char *arg, long long *code)
+static int	parse_digits(const char *s, int i, unsigned long long *out)
 {
-	int					i;
-	int					sign;
 	unsigned long long	acc;
-	unsigned long long	limit;
+	int					d;
 
-	if (!read_sign(arg, &i, &sign))
+	acc = 0;
+	if (!s[i])
 		return (0);
-	if (arg[i] == '+' || arg[i] == '-')
-		return (0);
-	if (sign == -1)
-		limit = (unsigned long long)LLONG_MAX + 1ULL;
-	else
-		limit = (unsigned long long)LLONG_MAX;
-	if (!read_digits(arg, i, limit, &acc))
-		return (0);
-	if (sign == -1 && acc == (unsigned long long)LLONG_MAX + 1ULL)
-		*code = LLONG_MIN;
-	else if (sign == -1)
-		*code = -(long long)acc;
-	else
-		*code = (long long)acc;
+	while (s[i])
+	{
+		d = s[i] - '0';
+		if (d < 0 || d > 9)
+			return (0);
+		if (acc > ULLONG_MAX / 10
+			|| (acc == ULLONG_MAX / 10
+				&& (unsigned long long)d > ULLONG_MAX % 10))
+			return (0);
+		acc = acc * 10 + (unsigned long long)d;
+		i++;
+	}
+	*out = acc;
 	return (1);
 }
 
-int	builtin_exit(t_cmd *cmd, int status)
+static int	parse_exit_code(const char *raw, long long *code)
 {
-	long long		code;
-	int				argc;
-	int				err;
+	int					sign;
+	int					i;
+	unsigned long long	val;
+
+	while (*raw == ' ' || *raw == '\t')
+		raw++;
+	if (!*raw)
+		return (0);
+	i = skip_sign(raw, &sign);
+	if (!parse_digits(raw, i, &val))
+		return (0);
+	if (sign == 1)
+	{
+		if (val > (unsigned long long)LLONG_MAX)
+			return (0);
+		*code = (long long)val;
+		return (1);
+	}
+	if (val > (unsigned long long)LLONG_MAX + 1ULL)
+		return (0);
+	if (val == (unsigned long long)LLONG_MAX + 1ULL)
+		*code = LLONG_MIN;
+	else
+		*code = -(long long)val;
+	return (1);
+}
+
+static int	resolve_code(t_cmd *cmd, t_shell *shell, long long *code)
+{
+	int	argc;
 
 	argc = 0;
 	while (cmd->argv && cmd->argv[argc])
 		argc++;
-	if (isatty(STDIN_FILENO))
-		write(2, "exit\n", 5);
 	if (argc == 1)
-		return ((unsigned char)status);
-	if (!parse_exit_code(cmd->argv[1], &code))
+		*code = (unsigned char)shell->last_status;
+	else
 	{
-		err = error_msg(2, "exit", cmd->argv[1], "numeric argument required");
-		return (-(err));
+		if (!parse_exit_code(cmd->argv[1], code))
+		{
+			error_msg(2, "exit", cmd->argv[1], "numeric argument required");
+			shell->should_exit = 1;
+			shell->exit_code = 2;
+			return (2);
+		}
+		if (argc > 2)
+		{
+			error_msg(1, "exit", NULL, "too many arguments");
+			return (1);
+		}
+		*code = (unsigned char)*code;
 	}
-	if (argc > 2)
-	{
-		err = error_msg(1, "exit", NULL, "too many arguments");
-		return (256);
-	}
-	return ((unsigned char)code);
+	return (0);
+}
+
+int	builtin_exit(t_cmd *cmd, t_shell *shell)
+{
+	long long	code;
+	int			ret;
+
+	if (isatty(STDIN_FILENO) && isatty(STDOUT_FILENO))
+		write(2, "exit\n", 5);
+	ret = resolve_code(cmd, shell, &code);
+	if (ret == 1)
+		return (1);
+	if (ret == 2)
+		return (2);
+	shell->should_exit = 1;
+	shell->exit_code = (int)code;
+	return ((int)code);
 }

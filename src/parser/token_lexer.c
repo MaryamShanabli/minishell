@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 16:27:29 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/05 05:08:50 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/12 00:00:00 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@ void	init_cmd(t_cmd *cmd)
 {
 	cmd->argv = NULL;
 	cmd->redirs = NULL;
-	cmd->is_builtin = 0;
 	cmd->pid = 0;
 	cmd->next = NULL;
 }
@@ -72,11 +71,9 @@ t_token	*lexer(char *line)
 {
 	int		i;
 	t_token	*tokens;
-	int		first_word;
 
 	i = 0;
 	tokens = NULL;
-	first_word = 1;
 	while (line[i])
 	{
 		while (line[i] == ' ' || line[i] == '\t' || line[i] == '\n')
@@ -84,9 +81,9 @@ t_token	*lexer(char *line)
 		if (!line[i])
 			break ;
 		if (line[i] == '|' || line[i] == '>' || line[i] == '<')
-			add_operator_token(line, &i, &tokens, &first_word);
+			add_operator_token(line, &i, &tokens);
 		else
-			add_word_token(line, &i, &tokens, &first_word);
+			add_word_token(line, &i, &tokens);
 	}
 	return (tokens);
 }
