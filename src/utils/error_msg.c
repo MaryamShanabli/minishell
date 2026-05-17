@@ -6,45 +6,67 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 15:12:43 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/14 00:00:00 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/17 18:47:08 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-static void	write_sanitized(const char *s)
-{
-	size_t	i;
-	char	c;
+// static void	write_sanitized(const char *s)
+// {
+// 	size_t	i;
+// 	char	c;
 
-	i = 0;
-	while (s[i])
-	{
-		if (s[i] == '\n')
-			c = ' ';
-		else
-			c = s[i];
-		write(2, &c, 1);
-		i++;
-	}
+// 	i = 0;
+// 	while (s[i])
+// 	{
+// 		if (s[i] == '\n')
+// 			c = ' ';
+// 		else
+// 			c = s[i];
+// 		write(2, &c, 1);
+// 		i++;
+// 	}
+// }
+
+static int	append_join(char **dst, const char *suffix)
+{
+	char	*tmp;
+
+	if (!*dst || !suffix)
+		return (0);
+	tmp = ft_strjoin(*dst, suffix);
+	free(*dst);
+	*dst = tmp;
+	return (tmp != NULL);
 }
 
-int	error_msg(int status, const char *cmd, const char *arg, const char *msg)
+int	error_msg(int status, char *cmd, char *arg, char *msg)
 {
-	write(2, "./minishell: ", 13);
-	if (cmd)
+	char	*full;
+
+	full = ft_strdup("./minishell: ");
+	if (full && cmd)
 	{
-		write_sanitized(cmd);
-		write(2, ": ", 2);
+		append_join(&full, cmd);
+		append_join(&full, ": ");
 	}
-	if (arg)
+	if (full && arg)
 	{
-		write_sanitized(arg);
-		write(2, ": ", 2);
+		append_join(&full, arg);
+		append_join(&full, ": ");
 	}
-	if (msg)
-		write(2, msg, ft_strlen(msg));
-	write(2, "\n", 1);
+	if (full && msg)
+		append_join(&full, msg);
+	if (full)
+	{
+		append_join(&full, "\n");
+		if (full)
+		{
+			write(2, full, ft_strlen(full));
+			free(full);
+		}
+	}
 	return (status);
 }
 

@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 17:40:00 by mshanabl          #+#    #+#             */
-/*   Updated: 2026/05/16 12:44:38 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/17 18:22:36 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,12 +65,6 @@ int	do_heredoc_pre(t_redir *redir, t_shell *shell)
 	signal(SIGINT, SIG_IGN);
 	signal(SIGQUIT, SIG_IGN);
 	pid = hd_fork(fd, redir->target, shell, redir->heredoc_expand);
-	if (pid == -1)
-	{
-		signal(SIGINT, SIG_DFL);
-		signal(SIGQUIT, SIG_DFL);
-		return (-1);
-	}
 	pid = hd_child_wait((pid_t)pid, fd[0]);
 	signal(SIGINT, SIG_DFL);
 	signal(SIGQUIT, SIG_IGN);
@@ -102,6 +96,7 @@ static int	process_cmd_redirs(t_cmd *cur, t_cmd *head, t_shell *shell)
 		}
 		r = r->next;
 	}
+	close_heredoc_fds(head);
 	return (0);
 }
 

@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:40:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/16 12:54:08 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/05/17 18:32:50 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,8 +150,8 @@ int		env_set(char ***env, const char *key, const char *value);
 int		env_unset(char ***env, const char *key);
 int		env_has(char **env, const char *key);
 
-int		error_msg(int status, const char *cmd,
-			const char *arg, const char *msg);
+int		error_msg(int status, char *cmd,
+			char *arg, char *msg);
 int		syntax_token_error(const char *token);
 
 int		is_builtin(char *name);
