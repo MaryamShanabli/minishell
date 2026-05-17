@@ -93,8 +93,8 @@ valgrind --leak-check=full --show-leak-kinds=all --track-fds=yes \
 ## Resources
 
 - `man 2 fork`, `man 2 execve`, `man 2 pipe`, `man 2 dup2`, `man 2 waitpid`, `man 7 signal` — primary references for every system call used.
-- GNU Bash Reference Manual — search **"bash reference manual gnu"** — authoritative reference for expected shell behavior.
-- Writing a Unix Shell (tutorial series) — search **"write a unix shell aosabook"** — practical walkthrough of shell internals.
+- [Understanding Unix Processes in C](https://medium.com/@chelbiahmed501/understanding-unix-processes-in-c-a-practical-introduction-to-fork-and-wait-4c437d80daff)
+- [Writing Your Own Shell](https://www.cs.purdue.edu/homes/grr/SystemsProgrammingBook/Book/Chapter5-WritingYourOwnShell.pdf)
 
 ### How AI was used
 
