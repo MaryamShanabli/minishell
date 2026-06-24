@@ -6,7 +6,7 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/19 12:00:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/16 13:23:52 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/06/24 13:44:49 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ int	main(int ac, char **av, char **envp)
 	t_shell	shell;
 	int		status;
 
+	print_minishell_masterpiece();
 	shell.env = env_dup(envp);
 	if (!shell.env)
 		return (1);

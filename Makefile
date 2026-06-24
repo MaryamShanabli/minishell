@@ -3,7 +3,17 @@ NAME = minishell
 CC = cc
 CFLAGS = -Wall -Wextra -Werror -I.
 
+UNAME := $(shell uname)
+ifeq ($(UNAME), Darwin)
+READLINE_PREFIX := $(shell brew --prefix readline 2>/dev/null)
+CFLAGS += -I$(READLINE_PREFIX)/include
+LDFLAGS := -L$(READLINE_PREFIX)/lib -lreadline
+else
+LDFLAGS := -lreadline
+endif
+
 SRC = src/core/main.c \
+	src/core/banner.c \
 	src/core/main_shlvl.c \
 	src/exec/exec_core.c \
 	src/exec/exec_builtin.c \
@@ -44,7 +54,7 @@ OBJ = $(SRC:.c=.o)
 all: $(NAME)
 
 $(NAME): $(OBJ)
-	$(CC) $(CFLAGS) $(OBJ) -lreadline -o $(NAME)
+	$(CC) $(CFLAGS) $(OBJ) $(LDFLAGS) -o $(NAME)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

@@ -6,13 +6,14 @@
 /*   By: mshanabl <mshanabl@student.42amman.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/21 16:40:00 by oalfoqha          #+#    #+#             */
-/*   Updated: 2026/05/17 18:32:50 by mshanabl         ###   ########.fr       */
+/*   Updated: 2026/06/24 13:52:41 by mshanabl         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MINISHELL_H
 # define MINISHELL_H
 
+# include <stdio.h>
 # include <errno.h>
 # include <fcntl.h>
 # include <limits.h>
@@ -20,7 +21,6 @@
 # include <readline/readline.h>
 # include <signal.h>
 # include <stddef.h>
-# include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
 # include <termios.h>
@@ -216,5 +216,7 @@ void	free_tokens(t_token *tokens);
 void	free_cmd_list(t_cmd *cmd);
 void	free_redirs(t_redir *redirs);
 void	handle_eof(int status);
+
+void	print_minishell_masterpiece(void);
 
 #endif
